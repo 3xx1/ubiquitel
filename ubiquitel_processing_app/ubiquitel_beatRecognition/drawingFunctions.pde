@@ -5,9 +5,7 @@ void pushArrayData(int[] signal, int arraySize) {
 }
 
 void osciloLineDraw(int[] signal, int arraySize) {
-  stroke(#333333);
   for(int i=0; i<arraySize-1; i++) {
     line(i, height - signal[i], i+1, height - signal[i+1]);
   }
 }
-
