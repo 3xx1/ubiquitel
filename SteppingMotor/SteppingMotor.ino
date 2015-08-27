@@ -20,6 +20,7 @@ int motor_pin_43 = 16;
 int motor_pin_44 = 17;
 
 int stepCount = 0;         // number of steps the motor has taken
+int turning = 40;
 int moving = 0;
 bool fr = true;
 
@@ -53,9 +54,9 @@ void loop() {
   }
 
   if(moving) {
-    if(stepCount == 50) {
+    if(stepCount == turning) {
       fr = false;
-      stepCount--;
+      stepCount = turning-2;
     } else if(stepCount == -1){
       fr = true;
       stepCount = 0;
