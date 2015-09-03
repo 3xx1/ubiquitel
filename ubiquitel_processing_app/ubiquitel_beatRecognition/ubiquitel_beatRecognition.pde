@@ -8,11 +8,10 @@ void draw() {
   signal[0] = pulseInput;
   pulseInput = pulseReductionSimulator(pulseInput, .8);
   /* ******************************************************************* */
-  
+
   drawPeripherals();
   if(playbackEventFlag)  playbackRecordings(playback_clock, playback_index);
   if(!playbackEventFlag) intensityRecognitionEvent(signal, threshold_on, threshold_off);
   pushArrayData(signal, arraySize);
   osciloLineDraw(signal, arraySize);
 }
-

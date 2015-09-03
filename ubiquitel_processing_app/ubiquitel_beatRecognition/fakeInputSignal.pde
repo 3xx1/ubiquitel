@@ -18,5 +18,3 @@ int pulseReductionSimulator(int intensity, float reduction) {
     return r;
   }
 }
-
-

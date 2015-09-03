@@ -8,9 +8,10 @@ int signal[] = new int[arraySize];
 int threshold_on  = 30;
 int threshold_off = 30;
 
-// global valuables 
+// global valuables
 int pulseInput;
 int maxIntensity;
+int peakTiming;
 boolean intensityRecognitionEventFlag;
 boolean recordingEventFlag;
 boolean playbackEventFlag;
@@ -32,6 +33,5 @@ void setup() {
   println(systemMessage);
   // String portName = Serial.list()[0];
   // myPort = new Serial(this, portName, 9600);
-  
-}
 
+}

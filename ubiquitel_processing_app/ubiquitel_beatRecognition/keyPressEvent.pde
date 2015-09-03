@@ -7,11 +7,11 @@ void keyPressed() {
       recordingEventFlag = true;
       recordingInit();
     }
-    
+
     stroke(255,0,0);
-    rect(width-10, 0, 10, 10);    
+    rect(width-10, 0, 10, 10);
   }
-  
+
   if (key == 'p') {
     if(playbackEventFlag) {
       playbackEventFlag = false;
@@ -21,5 +21,3 @@ void keyPressed() {
     }
   }
 }
-
-
