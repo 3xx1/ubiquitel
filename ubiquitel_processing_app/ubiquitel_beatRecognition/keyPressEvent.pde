@@ -3,6 +3,8 @@ void keyPressed() {
   {
     if(recordingEventFlag) {
       recordingEventFlag = false;
+      intensity_rec.add(0);
+      timestamp_rec.add(clock);
     } else {
       recordingEventFlag = true;
       recordingInit();
@@ -18,6 +20,14 @@ void keyPressed() {
     } else {
       playbackEventFlag = true;
       playbackInit();
+    }
+  }
+  
+  if (key == 'x') {
+    if(repeatEventFlag) {
+      repeatEventFlag = false;
+    } else {
+      repeatEventFlag = true;
     }
   }
 }
