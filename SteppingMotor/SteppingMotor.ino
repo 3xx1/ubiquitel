@@ -1,136 +1,88 @@
 //Ubi1
-int motor_pin_11 = 2;
-int motor_pin_12 = 3;
-int motor_pin_13 = 4;
-int motor_pin_14 = 5;
-//Ubi2
-int motor_pin_21 = 6;
-int motor_pin_22 = 7;
-int motor_pin_23 = 8;
-int motor_pin_24 = 9;
-//Ubi3
-int motor_pin_31 = 10;
-int motor_pin_32 = 11;
-int motor_pin_33 = 12;
-int motor_pin_34 = 13;
-//Ubi4
-int motor_pin_41 = 14;
-int motor_pin_42 = 15;
-int motor_pin_43 = 16;
-int motor_pin_44 = 17;
+const int inA = 2;
+const int inB = 3;
+const int PS = 4;
+const int Vs2B = 5;
+const int LED = 13;
 
+int turning = 5;
+int dt = 5000;
 int stepCount = 0;         // number of steps the motor has taken
-int turning = 40;
-int moving = 0;
-bool fr = true;
+int moving = 1;
+int fr = 1;
 
 void setup() {
   Serial.begin(9600);
 
-  pinMode(motor_pin_11, OUTPUT);
-  pinMode(motor_pin_12, OUTPUT);
-  pinMode(motor_pin_13, OUTPUT);
-  pinMode(motor_pin_14, OUTPUT);
+  pinMode(inA, OUTPUT);
+  pinMode(inB, OUTPUT);
+  pinMode(Vs2B, OUTPUT);
+  pinMode(PS, OUTPUT);
+  pinMode(LED, OUTPUT);
 
-  pinMode(motor_pin_21, OUTPUT);
-  pinMode(motor_pin_22, OUTPUT);
-  pinMode(motor_pin_23, OUTPUT);
-  pinMode(motor_pin_24, OUTPUT);
-
-  pinMode(motor_pin_31, OUTPUT);
-  pinMode(motor_pin_32, OUTPUT);
-  pinMode(motor_pin_33, OUTPUT);
-  pinMode(motor_pin_34, OUTPUT);
-
-  pinMode(motor_pin_41, OUTPUT);
-  pinMode(motor_pin_42, OUTPUT);
-  pinMode(motor_pin_43, OUTPUT);
-  pinMode(motor_pin_44, OUTPUT);
+  digitalWrite(inA, LOW);
+  digitalWrite(inB, LOW);
+  digitalWrite(Vs2B, LOW);
+  digitalWrite(PS, HIGH);
+  digitalWrite(LED, LOW);
 }
 
 void loop() {
   if(Serial.available() > 0) {
-    moving = Serial.read();
+    int value = Serial.read();
+    //if(value > 100) dt = (value - 100)*200;
+    //else turning = value;
+    moving = 1;
   }
 
   if(moving) {
+    stepMotor();
+    delayMicroseconds(dt);
+    stepCount++;// = stepCount+fr;
     if(stepCount == turning) {
-      fr = false;
-      stepCount = turning-2;
-    } else if(stepCount == -1){
-      fr = true;
-      stepCount = 0;
       moving = 0;
+      stepCount = 0;
+      turning++;
+      if(turning == 40) turning = 5;
     }
-  
-    stepMotor(1, stepCount%4);
-    delay(4);
-  
-    if (fr) stepCount++;
-    else stepCount--;
+  }else if(!moving) {
+    delay(20);
+    stopMotor();
+    delay(80);
+    moving = 1;
   }
 }
 
-void stepMotor(int ubi, int thisStep)
+void stepMotor()
 {
-  int stepMotorPin1, stepMotorPin2, stepMotorPin3, stepMotorPin4;
-
-  //which ubi to move
-  switch (ubi) {
-  case 1:
-    stepMotorPin1 = motor_pin_11;
-    stepMotorPin2 = motor_pin_12;
-    stepMotorPin3 = motor_pin_13;
-    stepMotorPin4 = motor_pin_14;
-    break;
-  case 2:
-    stepMotorPin1 = motor_pin_21;
-    stepMotorPin2 = motor_pin_22;
-    stepMotorPin3 = motor_pin_23;
-    stepMotorPin4 = motor_pin_24;
-    break;
-  case 3:
-    stepMotorPin1 = motor_pin_31;
-    stepMotorPin2 = motor_pin_32;
-    stepMotorPin3 = motor_pin_33;
-    stepMotorPin4 = motor_pin_34;
-    break;
-  case 4:
-    stepMotorPin1 = motor_pin_41;
-    stepMotorPin2 = motor_pin_42;
-    stepMotorPin3 = motor_pin_43;
-    stepMotorPin4 = motor_pin_44;
-    break;
-
-  default:
-    return;
-  } 
-
+  int thisStep = stepCount%4;
+  digitalWrite(Vs2B, HIGH);
+  digitalWrite(PS, LOW);
+  digitalWrite(LED, HIGH);
+  
   switch (thisStep) {
-  case 0:    // 1010
-    digitalWrite(stepMotorPin1, HIGH);
-    digitalWrite(stepMotorPin2, LOW);
-    digitalWrite(stepMotorPin3, HIGH);
-    digitalWrite(stepMotorPin4, LOW);
+  case 0:    // 00
+    digitalWrite(inA, LOW);
+    digitalWrite(inB, LOW);
     break;
-  case 1:    // 0110
-    digitalWrite(stepMotorPin1, LOW);
-    digitalWrite(stepMotorPin2, HIGH);
-    digitalWrite(stepMotorPin3, HIGH);
-    digitalWrite(stepMotorPin4, LOW);
+  case 1:    // 10
+    digitalWrite(inA, HIGH);
+    digitalWrite(inB, LOW);
     break;
-  case 2:    //0101
-    digitalWrite(stepMotorPin1, LOW);
-    digitalWrite(stepMotorPin2, HIGH);
-    digitalWrite(stepMotorPin3, LOW);
-    digitalWrite(stepMotorPin4, HIGH);
+  case 2:    //11
+    digitalWrite(inA, HIGH);
+    digitalWrite(inB, HIGH);
     break;
-  case 3:    //1001
-    digitalWrite(stepMotorPin1, HIGH);
-    digitalWrite(stepMotorPin2, LOW);
-    digitalWrite(stepMotorPin3, LOW);
-    digitalWrite(stepMotorPin4, HIGH);
+  case 3:    //01
+    digitalWrite(inA, LOW);
+    digitalWrite(inB, HIGH);
     break;
-  } 
+  }
+}
+
+void stopMotor() {
+  digitalWrite(PS, HIGH);
+  digitalWrite(Vs2B, LOW);
+  digitalWrite(LED, LOW);
 }
 
