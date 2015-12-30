@@ -9,7 +9,7 @@ public:
     //コールバック関数の登録
     ubm.setCallback(this, &TestApp::ubCallback);
     //子機たちのIPアドレス取得
-    ubm.search();
+    ubm.search();//実際は10秒毎とかに呼んだほうが良い
   };
   ~TestApp(){};
   
