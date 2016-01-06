@@ -4,6 +4,13 @@
 #include <ArduinoOTA.h>
 #include <Ticker.h>
 
+//MotorIO
+const int inA = 4;
+const int inB = 5;
+const int PS = 12;
+const int Vs2B = 14;
+const int LED = 16;
+
 const char* ssid = "intermediakanno";
 const char* password = "kannolab";
 WiFiUDP udp;
@@ -13,16 +20,26 @@ typedef struct note {
   int ts;//Time stamp(Release point)
   int v;//Velocity
   int sp;//Start point
-}note;
+}Note;
 
-//Ubi1
-const int inA = 4;
-const int inB = 5;
-const int PS = 12;
-const int Vs2B = 14;
-const int LED = 16;
+typedef enum {
+  SYNC_UB,
+  PLAY_UB,
+  PAUSE_UB,
+  STOP_UB,
+  SET_LOOP,
+  SET_NOTE,
+  RESET_NOTE,
+  SEARCH_UB
+}DataType;
 
-note notes[32];
+typedef enum {
+  UB_FOUND,
+  UB_DOCKED,
+  UB_UNDOCKED
+}CallbackType;
+
+Note notes[32];
 int numNotes = 4;
 int res = 5;
 int now = 0;
@@ -30,7 +47,6 @@ int looptime = 1000/res;
 
 volatile int next = 0;
 unsigned char rel = 20;
-volatile int waiting = 5;
 volatile int stepCount = 0;         // number of steps the motor has taken
 volatile bool tapping = true;
 volatile bool lighting = false;
@@ -101,17 +117,28 @@ void setup() {
 }
 
 void loop() {
-    ArduinoOTA.handle();
+  ArduinoOTA.handle();
   
-    int packetSize = udp.parsePacket();
-    if (packetSize){
-        tapping = 1;
-        rel = udp.read();
-    }
-  
-    //udp.beginPacket("10.0.1.6", 6340);
-    //udp.write("58");
-    //udp.endPacket();
+  int packetSize = udp.parsePacket();
+  //親機から受信するデータ
+  //SYNC_UB,
+  //PLAY_UB,
+  //PAUSE_UB,
+  //STOP_UB,
+  //SET_LOOP,
+  //SET_NOTE,
+  //RESET_NOTE,
+  //SEARCH_UB
+    
+  if (packetSize){
+      tapping = 1;
+      rel = udp.read();
+  }
+
+  //親機に送信するデータ  
+  //UB_FOUND
+  //UB_DOCKED
+  //UB_UNDOCKED
 }
 
 void step() {
@@ -129,12 +156,6 @@ void step() {
         }
     }
     now = (now+1)%looptime;
-}
-
-void led() {
-  if(lighting) digitalWrite(LED, HIGH);
-  else digitalWrite(LED, LOW);
-  lighting = !lighting;
 }
 
 void stepMotor()
