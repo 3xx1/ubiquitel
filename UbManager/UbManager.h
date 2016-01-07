@@ -37,8 +37,9 @@ public:
   void addNote(Note note);//覚えさせたいノートを追加
   void sendNotes();//覚えさせたノートをユビに送信
   void resetNote();//全てのノートをリセット
-  void sync();//ユビの同期
+  void sync();//ユビの同期，未実装
   void play(int ubID);
+  void playAll();//全てのユビ同時再生
   void pause(int ubID);
   void stop(int ubID);
   int getDockedUbID();//ドッキングしているユビIDゲッタ．ドッキングしていない時は-1を返す
@@ -64,7 +65,7 @@ private:
   void stopServer();
   
   //データ送信用内部メソッド
-  void sendData(void *d, int size, int ubID);
+  void sendData(DataType d, int size, int ubID);
   void broadcast(DataType d, int size);
 };
 #endif /* UbManager_h */

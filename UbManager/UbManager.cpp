@@ -55,23 +55,23 @@ void UbManager::sendNotes() {//複数ノートをユビに送信
 void UbManager::resetNote() {//全てのノートをリセット
   if(!isDocking) return;
   ubs[dockedUbID].notes.clear();
-  int data = RESET_NOTE;
-  sendData(&data, sizeof(data), dockedUbID);
+  sendData(RESET_NOTE, sizeof(data), dockedUbID);
 }
 
 void UbManager::play(int ubID) {
-  int data = PLAY_UB;
-  sendData(&data, sizeof(data), ubID);
+  sendData(PLAY_UB, sizeof(data), ubID);
+}
+
+void UbManager::playAll() {
+    broadcast(PLAY_UB, sizeof(int));
 }
 
 void UbManager::pause(int ubID) {
-  int data = PAUSE_UB;
-  sendData(&data, sizeof(data), ubID);
+  sendData(PAUSE_UB, sizeof(data), ubID);
 }
 
 void UbManager::stop(int ubID) {
-  int data = STOP_UB;
-  sendData(&data, sizeof(data), ubID);
+  sendData(STOP_UB, sizeof(data), ubID);
 }
 
 int UbManager::getDockedUbID() {
@@ -121,7 +121,7 @@ void UbManager::broadcast(DataType d, int size) {
   printf("sent!\n");
 }
 
-void UbManager::sendData(void *d, int size, int ubID) {
+void UbManager::sendData(DataType d, int size, int ubID) {
 
   int sock;
   struct sockaddr_in addr;
@@ -131,7 +131,7 @@ void UbManager::sendData(void *d, int size, int ubID) {
   addr.sin_port = htons(6341);
   addr.sin_addr.s_addr = inet_addr(ubs[ubID].ip);
 
-  sendto(sock, d, size, 0, (struct sockaddr *)&addr, sizeof(addr));
+  sendto(sock, &d, size, 0, (struct sockaddr *)&addr, sizeof(addr));
   close(sock);
 }
 
