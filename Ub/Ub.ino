@@ -11,11 +11,6 @@ const int PS = 12;
 const int Vs2B = 14;
 const int LED = 16;
 
-const char* ssid = "intermediakanno";
-const char* password = "kannolab";
-WiFiUDP udp;
-Ticker ticker;
-
 typedef struct note {
   int ts;//Time stamp(Release point)
   int v;//Velocity
@@ -39,11 +34,21 @@ typedef enum {
   UB_UNDOCKED
 }CallbackType;
 
+const char* ssid = "intermediakanno";
+const char* password = "kannolab";
+WiFiUDP udp;
+Ticker ticker;
 Note notes[32];
+IPAddress ubmip;
+bool mfound = false;
+bool isPlaying = false;
+long packet[1000];
+int packetSize = 0;
 int numNotes = 4;
 int res = 5;
 int now = 0;
 int looptime = 1000/res;
+unsigned long time = 0;
 
 volatile int next = 0;
 unsigned char rel = 20;
@@ -96,8 +101,8 @@ void setup() {
   digitalWrite(PS, HIGH);
   digitalWrite(LED, LOW);
   
-  ticker.attach(0.005, step);
-  udp.begin(6340);
+  ticker.attach(0.005, timer);
+  udp.begin(6341);
 
   notes[0].ts = 0/res;
   notes[0].v = 40;
@@ -119,26 +124,82 @@ void setup() {
 void loop() {
   ArduinoOTA.handle();
   
-  int packetSize = udp.parsePacket();
-  //親機から受信するデータ
-  //SYNC_UB,
-  //PLAY_UB,
-  //PAUSE_UB,
-  //STOP_UB,
-  //SET_LOOP,
-  //SET_NOTE,
-  //RESET_NOTE,
-  //SEARCH_UB
-    
+  packetSize = udp.parsePacket();
+  //親機から受信
   if (packetSize){
-      tapping = 1;
-      rel = udp.read();
+      udp.read((char *)packet, sizeof(long)*1000);
   }
+  switch(packet[0]) {
+    case SYNC_UB:
+    time = 0;
+    break;
+    case PLAY_UB:
+    if(!isPlaying) isPlaying =true;
+    break;
+    case PAUSE_UB:
+    if(isPlaying) isPlaying =false;
+    break;
+    case STOP_UB:
+    if(isPlaying) isPlaying =false;
+    now = note[0].sp;
+    next = 0;
+    break;
+    case SET_LOOP:
+    setLoop();
+    break;
+    case SET_NOTE:
+    setNote();
+    break;
+    case RESET_NOTE:
+    resetNote();
+    break;
+    case SEARCH_UB:
+    mfound = true;
+    ubmip = udp.remoteIP();
+    sendData(UB_FOUND);
+    break;
+  }
+}
 
-  //親機に送信するデータ  
-  //UB_FOUND
-  //UB_DOCKED
-  //UB_UNDOCKED
+void setLoop() {
+  looptime = packet[1];
+  for(int i=0;i<numNotes;i++) {
+    if(notes[i].sp<0) notes[i].sp += looptime;
+  }
+}
+
+void setNote() {
+  numNotes = (packetSize-1)/2;
+  for(int i=0;i<numNotes;i++) {
+    notes[i].ts = (int)packet[2*i+1]/res;
+    notes[i].v = (int)packet[2*i+2]*4;
+    notes[i].sp = notes[i].ts -notes[i].v;
+    if(notes[i].sp<0) notes[i].sp += looptime;
+  }
+}
+
+void resetNote() {
+  if(numNotes) {
+    for(int i=0;i<numNotes;i++) {
+      notes[i].ts = 0;
+      notes[i].v = 0;
+      notes[i].sp = 0;
+    }
+  numNotes = 0;
+  }
+}
+
+void sendData(const CallbackType cbt) {
+    CallbackType ubf = cbt;
+    Udp.beginPacket(ubmip, 6340);
+    Udp.write(&ubf, sizeof(ubf));
+    Udp.endPacket();
+}
+
+//タイマ割り込み
+void timer() {
+  if(isPlaying) step();
+  time++;
 }
 
 void step() {
