@@ -49,7 +49,7 @@ void UbManager::sendNotes() {//複数ノートをユビに送信
         *dp++ = note.intensity;
         ++it;
     }
-    sendData(data, sizeof(data), dockedUbID);
+    sendData(data, 1+2*ubs[dockedUbID].notes.size()*sizeof(int), dockedUbID);
 }
 
 void UbManager::resetNote() {//全てのノートをリセット
@@ -118,7 +118,6 @@ void UbManager::broadcast(DataType d, int size) {
     setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&yes, sizeof(yes));
     sendto(sock, &d, size, 0, (struct sockaddr *)&addr, sizeof(addr));
     close(sock);
-    printf("sent!\n");
 }
 
 void UbManager::sendData(void *d, int size, int ubID) {
