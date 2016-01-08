@@ -1,4 +1,4 @@
-typedef enum DataType{
+typedef enum {
   SYNC_UB,
   PLAY_UB,
   PAUSE_UB,
@@ -9,7 +9,7 @@ typedef enum DataType{
   SEARCH_UB
 }DataType;
 
-typedef enum CallbackType{
+typedef enum {
   UB_FOUND,
   UB_DOCKED,
   UB_UNDOCKED

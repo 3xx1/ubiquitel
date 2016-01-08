@@ -65,7 +65,7 @@ private:
   void stopServer();
   
   //データ送信用内部メソッド
-  void sendData(DataType d, int size, int ubID);
+  void sendData(void *d, int size, int ubID);
   void broadcast(DataType d, int size);
 };
 #endif /* UbManager_h */

@@ -3,6 +3,7 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <Ticker.h>
+#include "ub.h"
 
 //MotorIO
 const int inA = 4;
@@ -10,29 +11,6 @@ const int inB = 5;
 const int PS = 12;
 const int Vs2B = 14;
 const int LED = 16;
-
-typedef struct note {
-  int ts;//Time stamp(Release point)
-  int v;//Velocity
-  int sp;//Start point
-}Note;
-
-typedef enum {
-  SYNC_UB,
-  PLAY_UB,
-  PAUSE_UB,
-  STOP_UB,
-  SET_LOOP,
-  SET_NOTE,
-  RESET_NOTE,
-  SEARCH_UB
-}DataType;
-
-typedef enum {
-  UB_FOUND,
-  UB_DOCKED,
-  UB_UNDOCKED
-}CallbackType;
 
 const char* ssid = "intermediakanno";
 const char* password = "kannolab";
@@ -48,7 +26,7 @@ int numNotes = 4;
 int res = 5;
 int now = 0;
 int looptime = 1000/res;
-unsigned long time = 0;
+unsigned long gtime = 0;
 
 volatile int next = 0;
 unsigned char rel = 20;
@@ -103,22 +81,6 @@ void setup() {
   
   ticker.attach(0.005, timer);
   udp.begin(6341);
-
-  notes[0].ts = 0/res;
-  notes[0].v = 40;
-  notes[0].sp = notes[0].ts -notes[0].v + looptime;
-
-  notes[1].ts = 250/res;
-  notes[1].v = 10;
-  notes[1].sp = notes[1].ts -notes[1].v;
-
-  notes[2].ts = 500/res;
-  notes[2].v = 30;
-  notes[2].sp = notes[2].ts -notes[2].v;
-
-  notes[3].ts = 750/res;
-  notes[3].v = 10;
-  notes[3].sp = notes[3].ts -notes[3].v;
 }
 
 void loop() {
@@ -131,7 +93,7 @@ void loop() {
   }
   switch(packet[0]) {
     case SYNC_UB:
-    time = 0;
+    gtime = 0;
     break;
     case PLAY_UB:
     if(!isPlaying) isPlaying =true;
@@ -141,7 +103,7 @@ void loop() {
     break;
     case STOP_UB:
     if(isPlaying) isPlaying =false;
-    now = note[0].sp;
+    now = notes[0].sp;
     next = 0;
     break;
     case SET_LOOP:
@@ -191,18 +153,18 @@ void resetNote() {
 
 void sendData(const CallbackType cbt) {
     CallbackType ubf = cbt;
-    Udp.beginPacket(ubmip, 6340);
-    Udp.write(&ubf, sizeof(ubf));
-    Udp.endPacket();
+    udp.beginPacket(ubmip, 6340);
+    udp.write((char *)&ubf, sizeof(ubf));
+    udp.endPacket();
 }
 
 //タイマ割り込み
 void timer() {
-  if(isPlaying) step();
-  time++;
+  if(isPlaying) stepTime();
+  gtime++;
 }
 
-void step() {
+void stepTime() {
     if(notes[next].sp == now)
       tapping = true;
     
