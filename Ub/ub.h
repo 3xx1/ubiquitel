@@ -21,3 +21,32 @@ typedef struct Note {
   int sp;//Start point
 }Note;
 
+//Comm
+const char* ssid = "intermediakanno";
+const char* password = "kannolab";
+WiFiUDP udp;
+IPAddress ubmip;
+long packet[1000];
+int packetSize = 0;
+
+//Dock
+int dockState = HIGH;
+
+//Note
+Note notes[32];
+int numNotes = 4;
+volatile int next = 0;
+
+//Tap
+int looptime = 0;
+bool isPlaying = false;
+volatile bool tapping = false;
+volatile int stepCount = 0;
+int now = 0;
+
+//Timer
+unsigned long gtime = 0;
+int res = 5;
+
+
+
