@@ -17,3 +17,6 @@ ubm:	$(UBMO)
 vub:	$(VUBO)
 	$(CC) -o $(VUBT) $(VUBO) $(FLAGS)
 	rm -f *.o
+
+clean:
+	rm $(VUBT) $(UBMT)
