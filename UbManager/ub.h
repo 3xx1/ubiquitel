@@ -12,20 +12,20 @@
 #include <vector>
 
 typedef enum {
-  SYNC_UB,
-  PLAY_UB,
-  PAUSE_UB,
-  STOP_UB,
-  SET_LOOP,
-  SET_NOTE,
-  RESET_NOTE,
-  SEARCH_UB
+    SYNC_UB,
+    PLAY_UB,
+    PAUSE_UB,
+    STOP_UB,
+    SET_LOOP,
+    SET_NOTE,
+    RESET_NOTE,
+    SEARCH_UB
 }DataType;
 
 typedef enum {
-  UB_FOUND,
-  UB_DOCKED,
-  UB_UNDOCKED
+    UB_FOUND,
+    UB_DOCKED,
+    UB_UNDOCKED
 }CallbackType;
 
 //Note:ユビを叩くタイミング(0~ループ周期)と強さ(1~10くらい？)を持つ構造体
