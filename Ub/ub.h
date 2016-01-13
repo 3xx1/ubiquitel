@@ -6,13 +6,14 @@ typedef enum {
   SET_LOOP,
   SET_NOTE,
   RESET_NOTE,
-  SEARCH_UB
+  SEARCH_UB,
+  CONFIRM
 }DataType;
 
 typedef enum {
   UB_FOUND,
   UB_DOCKED,
-  UB_UNDOCKED
+  UB_UNDOCKED,
 }CallbackType;
 
 typedef struct Note {
@@ -28,6 +29,7 @@ WiFiUDP udp;
 IPAddress ubmip;
 long packet[1000];
 int packetSize = 0;
+int waiting[3] = {0,0,0};
 
 //Dock
 int dockState = HIGH;
@@ -35,6 +37,7 @@ int dockState = HIGH;
 //Note
 Note notes[32];
 int numNotes = 4;
+int vTable[10] = {8,9,10,11,12,14,16,22,30,40};
 volatile int next = 0;
 
 //Tap

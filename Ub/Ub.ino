@@ -42,7 +42,7 @@ void loop() {
 
 //タイマ割り込み
 void timer() {
-  if(gtime%200==0) checkDock();
+  if(gtime%100==0) checkDock();
   if(isPlaying) stepTime();
   gtime++;
 }

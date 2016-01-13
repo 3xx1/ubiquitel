@@ -11,13 +11,15 @@ public:
         n = -1;
         ubm.setCallback(this, &TestApp::ubCallback);
         //子機たちのIPアドレス取得
-        ubm.search();//実際は10秒毎とかに呼んだほうが良い
+        ubm.search();
     };
     ~TestApp(){};
     
-    void play() { if(n >= 0) ubm.play(n);}
-    void pause() { if(n >= 0) ubm.pause(n);}
-    void stop() { if(n >= 0) ubm.stop(n);}
+    void play() { if(n >= 0) ubm.play(n); printf("ub%d play!\n", n);}
+    void pause() { if(n >= 0) ubm.pause(n); printf("ub%d pause!\n", n);}
+    void stop() { if(n >= 0) ubm.stop(n); printf("ub%d stop!\n", n);}
+    void sync() {ubm.sync(); printf("sync ub!\n");}
+    void search() {ubm.search(); printf("searching ub...\n");}
 
     //ユビが見つかった時，ドッキングした時，ドッキング解除した時に呼ばれるコールバック関数
     void ubCallback(CallbackType cbt, int ubID){//ユビ状況，ユビID
@@ -34,37 +36,31 @@ public:
                 ubm.resetNote();
               
                 //タイムスタンプ(ms),強さ(0~10)をいれて，覚えさせるノートを追加
-                ubm.addNote(0, 8);
+                ubm.addNote(0, 10);
               
                 //Note構造体を使ってもOK
                 Note note;
                 note.timeStamp = 250;
-                note.intensity = 3;
+                note.intensity = 9;
                 ubm.addNote(note);
               
                 //追加順は時系列じゃなくてもOK
-                ubm.addNote(750, 3);
-                ubm.addNote(500, 10);
-              
+                ubm.addNote(250*2, 8);
+                ubm.addNote(250*3, 7);
+                ubm.addNote(250*4, 6);
+                ubm.addNote(250*5, 5);
+                ubm.addNote(250*6, 4);
+                ubm.addNote(250*7, 3);
+                ubm.addNote(250*8, 2);
+                ubm.addNote(250*9, 1);
+
                 //追加したノートをユビに送信
                 ubm.sendNotes();
               
                 //ループ周期をユビに送信
-                ubm.sendLoop(1000);
+                ubm.sendLoop(2500);
               
                 //以上のメソッドはドッキングしているユビにのみおこなわれるメソッド
-                //以降はユビIDを指定することで，任意のユビに対して実行可能
-              
-                /*再生，一時停止，停止（0に戻る）
-                ubm.play(ubID);
-                usleep(1500000);
-                ubm.pause(ubID);
-                usleep(1000000);
-                ubm.play(ubID);
-                usleep(500000);
-                ubm.stop(ubID);
-                usleep(500000);
-                ubm.play(ubID);*/
                 break;
 
             case UB_UNDOCKED://ドッキング解除した時
@@ -82,14 +78,20 @@ int main() {
     while(q == false) {
         scanf("%d", &i);
         switch(i) {
-            case 1:
+            case 1://ユビプレイ
                 app.play();
                 break;
-            case 2:
+            case 2://ユビポーズ
                 app.pause();
                 break;
-            case 3:
+            case 3://ユビストップ
                 app.stop();
+                break;
+            case 4://ユビシンク
+                app.sync();
+                break;
+            case 5://ユビサーチ
+                app.search();
                 break;
             case 9:
                 q = true;
