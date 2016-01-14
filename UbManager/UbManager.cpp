@@ -97,7 +97,7 @@ void UbManager::stopServer() {
     }
 }
 
-void UbManager::sync() {//ユビの同期
+void UbManager::sync() {//ユビの同時再生
     broadcast(SYNC_UB, sizeof(int));
 }
 
@@ -121,7 +121,6 @@ void UbManager::broadcast(DataType d, int size) {
 }
 
 void UbManager::sendData(void *d, int size, int ubID) {
-    
     int sock;
     struct sockaddr_in addr;
     
@@ -129,14 +128,17 @@ void UbManager::sendData(void *d, int size, int ubID) {
     addr.sin_family = AF_INET;
     addr.sin_port = htons(6341);
     addr.sin_addr.s_addr = inet_addr(ubs[ubID].ip);
-    
+
     sendto(sock, d, size, 0, (struct sockaddr *)&addr, sizeof(addr));
     close(sock);
 }
 
-//IPアドレス待受
-//ノートデータ送信
+void UbManager::confirm(CallbackType cbt, int ubID) {
+    int data[2] = {CONFIRM, cbt};
+    sendData(data, sizeof(int)*2, ubID);
+}
 
+//IPアドレス待受
 void *UbManager::threadFunction(void *data) {
     UbManager *ubm = (UbManager *)data;
     int sock, val;
@@ -165,26 +167,39 @@ void *UbManager::threadFunction(void *data) {
         if(type==UB_FOUND) {//IPアドレス
             Ub ub;
             ub.loop = 0;
+            bool onList = false;
             strcpy(ub.ip, inet_ntoa(senderinfo.sin_addr));
-            ubm->ubs.push_back(ub);
-            ubm->callback(UB_FOUND, ubm->ubs.size()-1);
-            
+            for (int i=0; i<ubm->ubs.size(); i++) {
+                if (strcmp(ubm->ubs[i].ip,ub.ip)==0)
+                    onList= true;
+            }
+            if(!onList) {
+                ubm->ubs.push_back(ub);
+                ubm->confirm(UB_FOUND, ubm->ubs.size()-1);
+                ubm->callback(UB_FOUND, ubm->ubs.size()-1);
+            }
         }else if(type==UB_DOCKED) {//ドッキング
             //dockedUb探し
             char ip[16];
             strcpy(ip, inet_ntoa(senderinfo.sin_addr));
             for (int i=0; i<ubm->ubs.size(); i++) {
                 if (strcmp(ubm->ubs[i].ip,ip)==0) {
-                    ubm->dockedUbID = i;
-                    ubm->isDocking = true;
-                    ubm->callback(UB_DOCKED, i);
+                    if (ubm->dockedUbID == -1) {
+                        ubm->confirm(UB_DOCKED, i);
+                        ubm->dockedUbID = i;
+                        ubm->isDocking = true;
+                        ubm->callback(UB_DOCKED, i);
+                    }
                 }
             }
             
         }else if(type==UB_UNDOCKED) {//ドッキング解除
-            ubm->isDocking = false;
-            ubm->callback(UB_UNDOCKED, ubm->dockedUbID);
-            ubm->dockedUbID = -1;
+            if (ubm->dockedUbID != -1) {
+                ubm->confirm(UB_UNDOCKED, ubm->dockedUbID);
+                ubm->isDocking = false;
+                ubm->callback(UB_UNDOCKED, ubm->dockedUbID);
+                ubm->dockedUbID = -1;
+            }
         }
     }
     close(sock);

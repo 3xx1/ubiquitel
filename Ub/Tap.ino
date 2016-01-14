@@ -1,3 +1,25 @@
+void syncUb() {
+  gtime = 0;
+  stopUb();
+  now = looptime - 50;
+  playUb();
+}
+
+void playUb() {
+  if(!isPlaying) isPlaying =true;
+}
+
+void pauseUb() {
+  if(isPlaying) isPlaying =false;
+}
+
+void stopUb() {
+  if(isPlaying) isPlaying =false;
+  stopMotor();
+  now = notes[0].sp;
+  next = 0;
+}
+
 void stepTime() {
     if(notes[next].sp == now)
       tapping = true;
