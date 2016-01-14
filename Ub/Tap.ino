@@ -1,11 +1,14 @@
 void syncUb() {
   gtime = 0;
   stopUb();
-  now = looptime - 50;
   playUb();
 }
 
 void playUb() {
+  for(int i=0;i<numNotes;i++) {
+    if(notes[i].sp<0) notes[i].sp += looptime;
+  }
+  now = looptime - 50;
   if(!isPlaying) isPlaying =true;
 }
 
@@ -16,7 +19,6 @@ void pauseUb() {
 void stopUb() {
   if(isPlaying) isPlaying =false;
   stopMotor();
-  now = notes[0].sp;
   next = 0;
 }
 

@@ -23,6 +23,7 @@ public:
 
     //ユビが見つかった時，ドッキングした時，ドッキング解除した時に呼ばれるコールバック関数
     void ubCallback(CallbackType cbt, int ubID){//ユビ状況，ユビID
+        int a = 250;
         switch(cbt) {
             case UB_FOUND://見つかった時
                 printf("ub%d found!\n", ubID);
@@ -37,28 +38,33 @@ public:
               
                 //タイムスタンプ(ms),強さ(0~10)をいれて，覚えさせるノートを追加
                 ubm.addNote(0, 10);
-              
                 //Note構造体を使ってもOK
                 Note note;
-                note.timeStamp = 250;
-                note.intensity = 9;
+                note.timeStamp = a;
+                note.intensity = 10;
                 ubm.addNote(note);
               
                 //追加順は時系列じゃなくてもOK
-                ubm.addNote(250*2, 8);
-                ubm.addNote(250*3, 7);
-                ubm.addNote(250*4, 6);
-                ubm.addNote(250*5, 5);
-                ubm.addNote(250*6, 4);
-                ubm.addNote(250*7, 3);
-                ubm.addNote(250*8, 2);
-                ubm.addNote(250*9, 1);
-
+                /*ubm.addNote(200*2, 1);
+                ubm.addNote(200*3, 5);
+                ubm.addNote(200*4, 8);
+                ubm.addNote(200*5, 1);
+                ubm.addNote(200*6, 3);
+                ubm.addNote(200*7, 1);
+                ubm.addNote(200*8, 3);
+                ubm.addNote(200*9, 7);
+                ubm.addNote(200*10, 1);
+                ubm.addNote(200*11, 6);
+                ubm.addNote(200*12, 9);
+                ubm.addNote(200*13, 1);
+                ubm.addNote(200*14, 4);
+                ubm.addNote(200*15, 5);
+                */
                 //追加したノートをユビに送信
                 ubm.sendNotes();
               
                 //ループ周期をユビに送信
-                ubm.sendLoop(2500);
+                ubm.sendLoop(a*2);
               
                 //以上のメソッドはドッキングしているユビにのみおこなわれるメソッド
                 break;
