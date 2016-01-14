@@ -19,7 +19,8 @@ typedef enum {
     SET_LOOP,
     SET_NOTE,
     RESET_NOTE,
-    SEARCH_UB
+    SEARCH_UB,
+    CONFIRM
 }DataType;
 
 typedef enum {
