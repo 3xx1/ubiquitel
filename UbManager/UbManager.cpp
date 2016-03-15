@@ -60,8 +60,18 @@ void UbManager::resetNote() {//全てのノートをリセット
 }
 
 void UbManager::play(int ubID) {
-    int data = PLAY_UB;
-    sendData(&data, sizeof(data), ubID);
+    int data[2] = {PLAY_UB, 0};
+    sendData(data, sizeof(data), ubID);
+}
+
+void UbManager::playAll() {
+    int data[2] = {PLAY_UB, 0};
+    //broadcast(data, sizeof(data));
+}
+
+void UbManager::playAt(int ubID, int time) {
+    int data[2] = {PLAY_UB, time};
+    sendData(data, sizeof(data), ubID);
 }
 
 void UbManager::pause(int ubID) {
@@ -97,7 +107,7 @@ void UbManager::stopServer() {
     }
 }
 
-void UbManager::sync() {//ユビの同時再生
+void UbManager::sync() {//ユビクロックの同期
     broadcast(SYNC_UB, sizeof(int));
 }
 

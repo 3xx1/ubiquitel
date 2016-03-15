@@ -1,6 +1,7 @@
 void setLoop() {
   looptime = packet[1]/res;
   now = looptime - 50;
+  Serial.println("set loop");
 }
 
 void setNote() {
@@ -10,6 +11,7 @@ void setNote() {
     notes[i].v = vTable[(int)packet[2*i+2]-1];
     notes[i].sp = notes[i].ts -notes[i].v;
   }
+  Serial.println("set note");
 }
 
 void resetNote() {

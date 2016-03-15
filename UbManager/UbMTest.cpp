@@ -15,7 +15,7 @@ public:
     };
     ~TestApp(){};
     
-    void play() { if(n >= 0) ubm.play(n); printf("ub%d play!\n", n);}
+    void play() { if(n >= 0) ubm.playAt(n, 5000); printf("ub%d play!\n", n);}
     void pause() { if(n >= 0) ubm.pause(n); printf("ub%d pause!\n", n);}
     void stop() { if(n >= 0) ubm.stop(n); printf("ub%d stop!\n", n);}
     void sync() {ubm.sync(); printf("sync ub!\n");}
@@ -23,7 +23,7 @@ public:
 
     //ユビが見つかった時，ドッキングした時，ドッキング解除した時に呼ばれるコールバック関数
     void ubCallback(CallbackType cbt, int ubID){//ユビ状況，ユビID
-        int a = 250;
+        int a = 400;
         switch(cbt) {
             case UB_FOUND://見つかった時
                 printf("ub%d found!\n", ubID);
@@ -37,15 +37,15 @@ public:
                 ubm.resetNote();
               
                 //タイムスタンプ(ms),強さ(0~10)をいれて，覚えさせるノートを追加
-                ubm.addNote(0, 10);
+                ubm.addNote(0, 7);
                 //Note構造体を使ってもOK
                 Note note;
-                note.timeStamp = a;
-                note.intensity = 10;
+                note.timeStamp = 200;
+                note.intensity = 3;
                 ubm.addNote(note);
               
                 //追加順は時系列じゃなくてもOK
-                /*ubm.addNote(200*2, 1);
+                ubm.addNote(200*2, 1);
                 ubm.addNote(200*3, 5);
                 ubm.addNote(200*4, 8);
                 ubm.addNote(200*5, 1);
@@ -59,12 +59,12 @@ public:
                 ubm.addNote(200*13, 1);
                 ubm.addNote(200*14, 4);
                 ubm.addNote(200*15, 5);
-                */
+                
                 //追加したノートをユビに送信
                 ubm.sendNotes();
               
                 //ループ周期をユビに送信
-                ubm.sendLoop(a*2);
+                ubm.sendLoop(200*16);
               
                 //以上のメソッドはドッキングしているユビにのみおこなわれるメソッド
                 break;

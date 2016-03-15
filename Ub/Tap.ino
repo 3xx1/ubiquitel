@@ -1,15 +1,18 @@
 void syncUb() {
   gtime = 0;
-  stopUb();
-  playUb();
+  playtime = 0;
 }
 
 void playUb() {
-  for(int i=0;i<numNotes;i++) {
+  if(!isPlaying) {
+    for(int i=0;i<numNotes;i++) {
     if(notes[i].sp<0) notes[i].sp += looptime;
+    }
+    now = looptime - 50;
+    Serial.println(gtime);
+    if(packet[1]>gtime) playtime = (int)packet[1]/res;
+    else isPlaying =true;
   }
-  now = looptime - 50;
-  if(!isPlaying) isPlaying =true;
 }
 
 void pauseUb() {
@@ -20,6 +23,8 @@ void stopUb() {
   if(isPlaying) isPlaying =false;
   stopMotor();
   next = 0;
+  tapping = false;
+  stepCount = 0;
 }
 
 void stepTime() {

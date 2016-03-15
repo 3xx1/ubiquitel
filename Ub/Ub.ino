@@ -45,4 +45,6 @@ void timer() {
   if(gtime%100==0) checkDock();
   if(isPlaying) stepTime();
   gtime++;
+  if(gtime == playtime)
+    isPlaying = true;
 }
