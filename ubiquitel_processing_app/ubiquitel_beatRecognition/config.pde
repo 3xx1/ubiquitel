@@ -1,2 +1,1 @@
-// import processing.serial.*;
-// Serial myPort;
+// to be removed.
