@@ -17,6 +17,8 @@ void playbackRecordings (int playback_clock, int index) {
   }
   if (timestamp_rec.get(playback_index) == playback_clock) {
     signal[0] = intensity_rec.get(playback_index);
+    int intensityConverted = int(map(signal[0], 0, 255, 0, 20));
+    myPort.write(intensityConverted);
     playback_index++;
   }
 }
