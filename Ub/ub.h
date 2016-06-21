@@ -49,6 +49,7 @@ int now = 0;
 
 //Timer
 unsigned long gtime = 0;
+int playtime = 0;
 int res = 5;
 
 
