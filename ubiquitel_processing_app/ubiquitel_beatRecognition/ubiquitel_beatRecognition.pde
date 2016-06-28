@@ -36,7 +36,7 @@ void setup() {
   recordingEventFlag = false;
   playbackEventFlag = false;
   println(systemMessage);
-  myPort = new Serial(this, "/dev/cu.usbmodem1421", 9600);
+  myPort = new Serial(this, "/dev/cu.usbmodemFA131", 9600);
 }
 
 void draw() {
@@ -45,8 +45,8 @@ void draw() {
   playback_clock++;
   /* ******************************************************************* */
   /* take the second line out, switch first line to arduino analog input */
-  // if (myPort.available()>0) signal[0] = myPort.read();
-  signal[0] = pulseInput;
+  if (myPort.available()>0) signal[0] = myPort.read();
+  //signal[0] = pulseInput;
   pulseInput = pulseReductionSimulator(pulseInput, .8);
   /* ******************************************************************* */
 
