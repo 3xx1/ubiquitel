@@ -1,14 +1,23 @@
+void notifyUb() {
+  ubmip = udp.remoteIP();
+  sendData(UB_FOUND);
+  if(dockState == LOW)
+    sendData(UB_DOCKED);
+}
+
 void syncUb() {
   gtime = 0;
-  playtime = 0;
+  playtime = 20;
+  stopUb();
 }
 
 void playUb() {
+  if(numNotes == 0) isPlaying = false;
   if(!isPlaying) {
     for(int i=0;i<numNotes;i++) {
-    if(notes[i].sp<0) notes[i].sp += looptime;
+      if(notes[i].sp<0) notes[i].sp += looptime;
     }
-    now = looptime - 50;
+    now = notes[0].sp;
     Serial.println(gtime);
     if(packet[1]>gtime) playtime = (int)packet[1]/res;
     else isPlaying =true;
@@ -28,7 +37,7 @@ void stopUb() {
 }
 
 void stepTime() {
-    if(notes[next].sp == now)
+    if(notes[next].sp == now && numNotes > 0)
       tapping = true;
     
     if(tapping) {

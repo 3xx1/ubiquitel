@@ -30,6 +30,8 @@ IPAddress ubmip;
 long packet[1000];
 int packetSize = 0;
 int waiting[3] = {0,0,0};
+int resendPeriod = 50;
+int waitingTime = 5*resendPeriod;
 
 //Dock
 int dockState = HIGH;

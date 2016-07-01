@@ -19,6 +19,7 @@ void UbManager::sendLoop(int loop) {//ループ周期の送信
     data[1] = loop;
     
     sendData(data, sizeof(data), dockedUbID);
+    printf("send loop %d\n",loop);
 }
 
 void UbManager::addNote(int ts, int intensity) {//ノートをユビに追加
@@ -26,6 +27,7 @@ void UbManager::addNote(int ts, int intensity) {//ノートをユビに追加
     note.timeStamp = ts;
     note.intensity = intensity;
     addNote(note);
+    printf("add note %d, %d\n",ts, intensity);
 }
 
 void UbManager::addNote(Note note) {//ノートをユビに追加
@@ -50,23 +52,26 @@ void UbManager::sendNotes() {//複数ノートをユビに送信
         ++it;
     }
     sendData(data, 1+2*ubs[dockedUbID].notes.size()*sizeof(int), dockedUbID);
+    printf("send notes\n");
 }
 
-void UbManager::resetNote() {//全てのノートをリセット
+void UbManager::resetNotes() {//全てのノートをリセット
     if(!isDocking) return;
     ubs[dockedUbID].notes.clear();
     int data = RESET_NOTE;
     sendData(&data, sizeof(data), dockedUbID);
+    printf("reset notes\n");
 }
 
 void UbManager::play(int ubID) {
     int data[2] = {PLAY_UB, 0};
     sendData(data, sizeof(data), ubID);
+    printf("play!\n");
 }
 
 void UbManager::playAll() {
     int data[2] = {PLAY_UB, 0};
-    //broadcast(data, sizeof(data));
+    broadcast(data, sizeof(data));
 }
 
 void UbManager::playAt(int ubID, int time) {
@@ -108,14 +113,16 @@ void UbManager::stopServer() {
 }
 
 void UbManager::sync() {//ユビクロックの同期
-    broadcast(SYNC_UB, sizeof(int));
+    int data = SYNC_UB;
+    broadcast(&data, sizeof(int));
 }
 
 void UbManager::search() {//ユビ検索用一斉送信
-    broadcast(SEARCH_UB, sizeof(int));
+    int data = SEARCH_UB;
+    broadcast(&data, sizeof(int));
 }
 
-void UbManager::broadcast(DataType d, int size) {
+void UbManager::broadcast(void *d, int size) {
     int sock;
     struct sockaddr_in addr;
     int yes = 1;
@@ -126,7 +133,7 @@ void UbManager::broadcast(DataType d, int size) {
     addr.sin_addr.s_addr = inet_addr("255.255.255.255");
     
     setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&yes, sizeof(yes));
-    sendto(sock, &d, size, 0, (struct sockaddr *)&addr, sizeof(addr));
+    sendto(sock, d, size, 0, (struct sockaddr *)&addr, sizeof(addr));
     close(sock);
 }
 
@@ -179,36 +186,60 @@ void *UbManager::threadFunction(void *data) {
             ub.loop = 0;
             bool onList = false;
             strcpy(ub.ip, inet_ntoa(senderinfo.sin_addr));
+            //すでにユビリストに追加してないかチェック
             for (int i=0; i<ubm->ubs.size(); i++) {
-                if (strcmp(ubm->ubs[i].ip,ub.ip)==0)
+                //追加してたらとりあえず返事だけする
+                if (strcmp(ubm->ubs[i].ip,ub.ip)==0) {
                     onList= true;
+                    ubm->confirm(UB_FOUND, i);
+                    ubm->callback(UB_FOUND, i);
+                }
             }
+            //リストにない時は追加
             if(!onList) {
                 ubm->ubs.push_back(ub);
                 ubm->confirm(UB_FOUND, ubm->ubs.size()-1);
                 ubm->callback(UB_FOUND, ubm->ubs.size()-1);
             }
-        }else if(type==UB_DOCKED) {//ドッキング
+        }
+        else if(type==UB_DOCKED) {//ドッキング
             //dockedUb探し
             char ip[16];
+            bool onList = false;
             strcpy(ip, inet_ntoa(senderinfo.sin_addr));
             for (int i=0; i<ubm->ubs.size(); i++) {
                 if (strcmp(ubm->ubs[i].ip,ip)==0) {
-                    if (ubm->dockedUbID == -1) {
-                        ubm->confirm(UB_DOCKED, i);
-                        ubm->dockedUbID = i;
-                        ubm->isDocking = true;
-                        ubm->callback(UB_DOCKED, i);
-                    }
+                    //発見したらドッキングしているユビIDを記録し、返事する
+                    ubm->confirm(UB_DOCKED, i);
+                    ubm->dockedUbID = i;
+                    ubm->isDocking = true;
+                    ubm->callback(UB_DOCKED, i);
+                    onList = true;
                 }
             }
-            
-        }else if(type==UB_UNDOCKED) {//ドッキング解除
+        }
+        else if(type==UB_UNDOCKED) {//ドッキング解除
+            //すでにドッキングしている時
             if (ubm->dockedUbID != -1) {
                 ubm->confirm(UB_UNDOCKED, ubm->dockedUbID);
                 ubm->isDocking = false;
                 ubm->callback(UB_UNDOCKED, ubm->dockedUbID);
                 ubm->dockedUbID = -1;
+            }
+            else {//ドッキングしているものがない時
+                Ub ub;
+                ub.loop = 0;
+                bool onList = false;
+                strcpy(ub.ip, inet_ntoa(senderinfo.sin_addr));
+                
+                //ユビリストからドッキングしていたと思われるユビ探し
+                for (int i=0; i<ubm->ubs.size(); i++) {
+                    if (strcmp(ubm->ubs[i].ip,ub.ip)==0) {
+                        onList= true;
+                        ubm->confirm(UB_UNDOCKED, i);
+                        ubm->callback(UB_UNDOCKED, i);
+                    }
+                }
             }
         }
     }

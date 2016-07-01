@@ -42,9 +42,11 @@ void loop() {
 
 //タイマ割り込み
 void timer() {
+  waitForConfirmation();
   if(gtime%100==0) checkDock();
   if(isPlaying) stepTime();
   gtime++;
   if(gtime == playtime)
-    isPlaying = true;
+    playUb();
+
 }

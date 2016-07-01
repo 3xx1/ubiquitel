@@ -34,7 +34,7 @@ public:
                 printf("ub%d docked!\n", ubID);
               
                 //過去に覚えこませたノートをリセット
-                ubm.resetNote();
+                ubm.resetNotes();
               
                 //タイムスタンプ(ms),強さ(0~10)をいれて，覚えさせるノートを追加
                 ubm.addNote(0, 7);
@@ -43,7 +43,7 @@ public:
                 note.timeStamp = 200;
                 note.intensity = 3;
                 ubm.addNote(note);
-              
+                
                 //追加順は時系列じゃなくてもOK
                 ubm.addNote(200*2, 1);
                 ubm.addNote(200*3, 5);

@@ -3,7 +3,6 @@ void parsePacket() {
   //親機から受信
   if (packetSize){
       udp.read((char *)packet, sizeof(long)*1000);
-    
       switch(packet[0]) {
         case SYNC_UB:
         syncUb();
@@ -24,17 +23,16 @@ void parsePacket() {
         setNote();
         break;
         case RESET_NOTE:
+        stopUb();
         resetNote();
         break;
         case SEARCH_UB:
-        ubmip = udp.remoteIP();
-        sendData(UB_FOUND);
+        notifyUb();
         break;
         case CONFIRM:
         waiting[packet[1]] = 0;
     }
   }
-  waitForConfirmation();
 }
 
 void sendData(const CallbackType cbt) {
@@ -42,15 +40,14 @@ void sendData(const CallbackType cbt) {
     udp.beginPacket(ubmip, 6340);
     udp.write((char *)&ubf, sizeof(ubf));
     udp.endPacket();
-    waiting[cbt] = 100;
+    waiting[cbt] = waitingTime;
 }
 
 void waitForConfirmation() {
   for(int i=0;i<3;i++) {
     if(waiting[i] > 1) waiting[i]--;
-    if(waiting[i] == 1) {
+    if((waiting[i]%resendPeriod) == 1) {
       sendData((CallbackType)i);
-      waiting[i] = 100;
     }
   }
 }

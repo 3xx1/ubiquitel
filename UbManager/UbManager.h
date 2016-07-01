@@ -36,7 +36,7 @@ public:
     void addNote(int ts, int intensity);//覚えさせたいノートを追加
     void addNote(Note note);//覚えさせたいノートを追加
     void sendNotes();//覚えさせたノートをユビに送信
-    void resetNote();//全てのノートをリセット
+    void resetNotes();//全てのノートをリセット
     void sync();//ユビクロックの同期
     void playAll();//全てのユビ同時再生
     void play(int ubID);
@@ -67,7 +67,7 @@ private:
     
     //データ送信用内部メソッド
     void sendData(void *d, int size, int ubID);
-    void broadcast(DataType d, int size);
+    void broadcast(void *d, int size);
     void confirm(CallbackType cbt, int ubID);
 };
 #endif /* UbManager_h */
