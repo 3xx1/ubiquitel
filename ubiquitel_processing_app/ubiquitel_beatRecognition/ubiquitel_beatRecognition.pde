@@ -24,6 +24,10 @@ int clock;
 int playback_clock;
 int playback_index;
 
+float bpm = 120;
+boolean quantize = true;
+int  clk_last_note = 0;
+
 // data storage
 ArrayList<Integer> intensity_rec = new ArrayList<Integer>();
 ArrayList<Integer> timestamp_rec = new ArrayList<Integer>();
