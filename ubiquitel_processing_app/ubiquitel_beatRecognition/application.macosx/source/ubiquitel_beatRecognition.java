@@ -42,6 +42,10 @@ int clock;
 int playback_clock;
 int playback_index;
 
+float bpm = 120;
+boolean quantize = true;
+int  clk_last_note = 0;
+
 // data storage
 ArrayList<Integer> intensity_rec = new ArrayList<Integer>();
 ArrayList<Integer> timestamp_rec = new ArrayList<Integer>();
@@ -54,7 +58,7 @@ public void setup() {
   recordingEventFlag = false;
   playbackEventFlag = false;
   println(systemMessage);
-  myPort = new Serial(this, "/dev/cu.usbmodemFD141", 9600);
+  myPort = new Serial(this, "/dev/cu.usbmodemFA141", 9600);
 }
 
 public void draw() {
@@ -79,6 +83,7 @@ public void drawPeripherals() {
   if (recordingEventFlag) {
     stroke(255,0,0);
     rect(width-10, 0, 10, 10);
+    drawMetro();
   }
   
   if (playbackEventFlag) {
@@ -97,6 +102,16 @@ public void osciloLineDraw(int[] signal, int arraySize) {
   stroke(0);
   for(int i=0; i<arraySize-1; i++) {
     line(i, height - signal[i], i+1, height - signal[i+1]);
+  }
+}
+
+public void drawMetro() {
+  float t = 60*1000*3/(bpm*50);
+  if((playback_clock%(int)t) < t/2) {
+    noStroke();
+    fill(255,0,0, ((t/2)-(playback_clock%(int)t))*255/(t/2));
+    ellipse(width/2, height/2, 200,200);
+    noFill();
   }
 }
 // not for actual future dev use, just faking input pulse :)
@@ -143,7 +158,13 @@ public void intensityRecognitionEvent(int[] signal, int threshold_on, int thresh
         peakTiming = 0;
       }
       timestamp_rec.add(peakTiming);
-      println("add," + peakTiming + "," + maxIntensity);
+      if(!quantize)
+        println("add," + peakTiming + "," + maxIntensity);
+      else {
+        int qpt = (int)((peakTiming+8)/15) * 15;
+        clk_last_note = qpt;
+        println("add," + qpt + "," + maxIntensity);
+      }
     }
   }
 
@@ -157,7 +178,14 @@ public void keyPressed() {
       intensity_rec.add(0);
       timestamp_rec.add(clock);
       println("sendNotes,");
-      println("sendLoop,"+clock);
+      
+      if(!quantize)
+        println("sendLoop,"+clock);
+      else {
+        float t = 60*1000*3/(bpm*50);
+        int qclk = ((int)(clk_last_note/(t*4))+1)*(int)t*4; 
+        println("sendLoop,"+qclk);
+      }
     } else {
       recordingEventFlag = true;
       recordingInit();
@@ -190,6 +218,56 @@ public void keyPressed() {
   }
   if (key == 'y') {
       println("sync,");
+  }
+  if (key == 'q') {
+      quantize = !quantize;
+  }
+  if (key == '1') {
+    println("reset,");
+    println("add," + 0 + "," + 8*20);
+    println("add," + 15*4 + "," + 8*20);
+    println("add," + 15*7 + "," + 8*20);
+    println("sendNotes,");
+    println("sendLoop,"+15*8);
+  }
+  if (key == '2') {
+    println("reset,");
+    println("add," + 15*0 + "," + 8*20);
+    println("add," + 15*4 + "," + 8*20);
+    println("add," + 15*5 + "," + 8*20);
+    println("sendNotes,");
+    println("sendLoop,"+15*8);
+  }
+  if (key == '3') {
+    println("reset,");
+    println("add," + 0 + "," + 8*20);
+    println("add," + 15*1 + "," + 8*20);
+    println("add," + 15*2 + "," + 8*20);
+    println("add," + 15*3 + "," + 8*20);
+    println("add," + 15*4 + "," + 8*20);
+    println("add," + 15*5 + "," + 8*20);
+    println("add," + 15*6 + "," + 8*20);
+    println("add," + 15*7 + "," + 8*20);
+    println("sendNotes,");
+    println("sendLoop,"+15*8);
+  }
+  if (key == '4') {
+    println("reset,");
+    println("add," + 24*0 + "," + 5*20);
+    println("add," + 24*1 + "," + 5*20);
+    println("add," + 24*2 + "," + 5*20);
+    println("add," + 24*3 + "," + 5*20);
+    println("add," + 24*4 + "," + 5*20);
+    println("sendNotes,");
+    println("sendLoop,"+15*8);
+  }
+  if (key == '5') {
+    println("reset,");
+    println("add," + 0 + "," + 3*20);
+    println("add," + 15*2 + "," + 3*20);
+    println("add," + 15*5 + "," + 3*20);
+    println("sendNotes,");
+    println("sendLoop,"+15*8);
   }
 }
 public float timestamp() {

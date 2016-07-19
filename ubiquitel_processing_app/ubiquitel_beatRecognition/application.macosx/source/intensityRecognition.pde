@@ -21,7 +21,13 @@ void intensityRecognitionEvent(int[] signal, int threshold_on, int threshold_off
         peakTiming = 0;
       }
       timestamp_rec.add(peakTiming);
-      println("add," + peakTiming + "," + maxIntensity);
+      if(!quantize)
+        println("add," + peakTiming + "," + maxIntensity);
+      else {
+        int qpt = (int)((peakTiming+8)/15) * 15;
+        clk_last_note = qpt;
+        println("add," + qpt + "," + maxIntensity);
+      }
     }
   }
 

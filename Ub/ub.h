@@ -23,22 +23,23 @@ typedef struct Note {
 }Note;
 
 //Comm
-const char* ssid = "intermediakanno";
-const char* password = "kannolab";
+const char* ssid = "ESPAP";
+const char* password = "ubiquitel";
 WiFiUDP udp;
 IPAddress ubmip;
 long packet[1000];
 int packetSize = 0;
 int waiting[3] = {0,0,0};
-int resendPeriod = 50;
-int waitingTime = 5*resendPeriod;
+int resendPeriod = 1000;
+int resend_max = 5;
+int resendCound[3] = {resend_max,resend_max,resend_max};
 
 //Dock
 int dockState = HIGH;
 
 //Note
 Note notes[32];
-int numNotes = 4;
+int numNotes = 0;
 int vTable[10] = {8,9,10,11,12,14,16,22,30,40};
 volatile int next = 0;
 

@@ -50,4 +50,51 @@ void keyPressed() {
   if (key == 'q') {
       quantize = !quantize;
   }
+  if (key == '1') {
+    println("reset,");
+    println("add," + 0 + "," + 8*20);
+    println("add," + 15*4 + "," + 8*20);
+    println("add," + 15*7 + "," + 8*20);
+    println("sendNotes,");
+    println("sendLoop,"+15*8);
+  }
+  if (key == '2') {
+    println("reset,");
+    println("add," + 15*0 + "," + 8*20);
+    println("add," + 15*4 + "," + 8*20);
+    println("add," + 15*5 + "," + 8*20);
+    println("sendNotes,");
+    println("sendLoop,"+15*8);
+  }
+  if (key == '3') {
+    println("reset,");
+    println("add," + 0 + "," + 8*20);
+    println("add," + 15*1 + "," + 8*20);
+    println("add," + 15*2 + "," + 8*20);
+    println("add," + 15*3 + "," + 8*20);
+    println("add," + 15*4 + "," + 8*20);
+    println("add," + 15*5 + "," + 8*20);
+    println("add," + 15*6 + "," + 8*20);
+    println("add," + 15*7 + "," + 8*20);
+    println("sendNotes,");
+    println("sendLoop,"+15*8);
+  }
+  if (key == '4') {
+    println("reset,");
+    println("add," + 24*0 + "," + 5*20);
+    println("add," + 24*1 + "," + 5*20);
+    println("add," + 24*2 + "," + 5*20);
+    println("add," + 24*3 + "," + 5*20);
+    println("add," + 24*4 + "," + 5*20);
+    println("sendNotes,");
+    println("sendLoop,"+15*8);
+  }
+  if (key == '5') {
+    println("reset,");
+    println("add," + 0 + "," + 3*20);
+    println("add," + 15*2 + "," + 3*20);
+    println("add," + 15*5 + "," + 3*20);
+    println("sendNotes,");
+    println("sendLoop,"+15*8);
+  }
 }

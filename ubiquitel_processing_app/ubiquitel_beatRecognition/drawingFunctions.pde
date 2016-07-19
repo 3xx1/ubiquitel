@@ -26,8 +26,9 @@ void osciloLineDraw(int[] signal, int arraySize) {
 
 void drawMetro() {
   float t = 60*1000*3/(bpm*50);
-  if((playback_clock%(int)t) < 16) {
-    fill(255,0,0, (16-(playback_clock%(int)t))*255/16);
+  if((playback_clock%(int)t) < t/2) {
+    noStroke();
+    fill(255,0,0, ((t/2)-(playback_clock%(int)t))*255/(t/2));
     ellipse(width/2, height/2, 200,200);
     noFill();
   }

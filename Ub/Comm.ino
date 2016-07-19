@@ -40,14 +40,15 @@ void sendData(const CallbackType cbt) {
     udp.beginPacket(ubmip, 6340);
     udp.write((char *)&ubf, sizeof(ubf));
     udp.endPacket();
-    waiting[cbt] = waitingTime;
+    waiting[cbt] = resendPeriod;
 }
 
 void waitForConfirmation() {
   for(int i=0;i<3;i++) {
-    if(waiting[i] > 1) waiting[i]--;
-    if((waiting[i]%resendPeriod) == 1) {
+    if(waiting[i] > 0) waiting[i]--;
+    if(waiting[i] == 1) {
       sendData((CallbackType)i);
+      Serial.println(waiting[i]);
     }
   }
 }
