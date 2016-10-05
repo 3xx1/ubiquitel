@@ -64,7 +64,7 @@ public:
                 ubm.sendNotes();
               
                 //ループ周期をユビに送信
-                ubm.sendLoop(200*16);
+                ubm.sendLoop(200*16, 0);
               
                 //以上のメソッドはドッキングしているユビにのみおこなわれるメソッド
                 break;

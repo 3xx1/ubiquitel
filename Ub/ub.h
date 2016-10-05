@@ -45,6 +45,7 @@ volatile int next = 0;
 
 //Tap
 int looptime = 0;
+int repeat = 0;
 bool isPlaying = false;
 volatile bool tapping = false;
 volatile int stepCount = 0;

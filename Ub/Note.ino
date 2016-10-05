@@ -1,6 +1,7 @@
 void setLoop() {
   looptime = packet[1]/res;
-  now = looptime - 50;
+  repeat = packet[2];
+  now = looptime - 40;
   Serial.println("set loop");
   Serial.println(now);
 

@@ -47,7 +47,12 @@ void stepTime() {
             tapping = false;
             stepCount = 0;
             stopMotor();
-            next = (next < numNotes-1) ? next+1 : 0;
+            if(next < numNotes-1) next++;
+            else {
+              next = 0;
+              if(repeat == 1) stopUb();
+              else if(repeat > 1) repeat--;
+            }
         }
     }
     now = (now+1)%looptime;

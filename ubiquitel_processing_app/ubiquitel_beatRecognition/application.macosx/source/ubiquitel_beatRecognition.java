@@ -231,7 +231,7 @@ public void keyPressed() {
     println("add," + 15*4 + "," + 8*20);
     println("add," + 15*7 + "," + 8*20);
     println("sendNotes,");
-    println("sendLoop,"+15*8);
+    println("sendLoop,"+15*8 + "," + 0);
   }
   if (key == '2') {
     println("reset,");
@@ -239,7 +239,7 @@ public void keyPressed() {
     println("add," + 15*4 + "," + 8*20);
     println("add," + 15*5 + "," + 8*20);
     println("sendNotes,");
-    println("sendLoop,"+15*8);
+    println("sendLoop,"+15*8 + "," + 1);
   }
   if (key == '3') {
     println("reset,");
@@ -252,7 +252,7 @@ public void keyPressed() {
     println("add," + 15*6 + "," + 8*20);
     println("add," + 15*7 + "," + 8*20);
     println("sendNotes,");
-    println("sendLoop,"+15*8);
+    println("sendLoop,"+15*8+ "," + 2);
   }
   if (key == '4') {
     println("reset,");
@@ -262,7 +262,7 @@ public void keyPressed() {
     println("add," + 24*3 + "," + 5*20);
     println("add," + 24*4 + "," + 5*20);
     println("sendNotes,");
-    println("sendLoop,"+15*8);
+    println("sendLoop,"+15*8+ "," + 3);
   }
   if (key == '5') {
     println("reset,");
@@ -270,7 +270,7 @@ public void keyPressed() {
     println("add," + 15*2 + "," + 3*20);
     println("add," + 15*5 + "," + 3*20);
     println("sendNotes,");
-    println("sendLoop,"+15*8);
+    println("sendLoop,"+15*8+ "," + 4);
   }
 }
 public float timestamp() {

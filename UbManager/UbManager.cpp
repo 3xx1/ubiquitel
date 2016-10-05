@@ -12,13 +12,14 @@ UbManager::~UbManager() {
     stopServer();
 }
 
-void UbManager::sendLoop(int loop) {//ループ周期の送信
+void UbManager::sendLoop(int loop, int repeat) {//ループ周期の送信
     if(destUbID == -1) return;
-    int data[2];
+    int data[3];
     ubs[destUbID].loop = loop;
     data[0] = SET_LOOP;
     data[1] = loop;
-    
+    data[2] = repeat;
+
     sendData(data, sizeof(data), destUbID);
     printf("send loop %d\n",loop);
 }

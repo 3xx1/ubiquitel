@@ -79,7 +79,7 @@ public:
             ubm.sendNotes();
         }
         else if(strcmp(dl[0], "sendLoop") == 0) {
-            ubm.sendLoop(atoi(dl[1])*16.7);
+            ubm.sendLoop(atoi(dl[1])*16.7, atoi(dl[2]));
         }
         else if(strcmp(dl[0], "reset") == 0) {
             ubm.resetNotes();
