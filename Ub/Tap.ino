@@ -17,7 +17,7 @@ void playUb() {
     for(int i=0;i<numNotes;i++) {
       if(notes[i].sp<0) notes[i].sp += looptime;
     }
-    now = notes[0].sp;
+    now = looptime-40;
     Serial.println(gtime);
     if(packet[1]>gtime) playtime = (int)packet[1]/res;
     else isPlaying =true;

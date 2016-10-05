@@ -10,7 +10,7 @@ void setNote() {
   numNotes = (packetSize-1)/8;
   for(int i=0;i<numNotes;i++) {
     notes[i].ts = (int)packet[2*i+1]/res;
-    notes[i].v = vTable[(int)packet[2*i+2]-1];
+    notes[i].v = vTable[(int)packet[2*i+2]];
     notes[i].sp = notes[i].ts -notes[i].v;
   }
   Serial.println("set notes");
