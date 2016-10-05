@@ -40,7 +40,7 @@ void setup() {
   recordingEventFlag = false;
   playbackEventFlag = false;
   println(systemMessage);
-  myPort = new Serial(this, "/dev/cu.usbmodemFA141", 9600);
+  myPort = new Serial(this, "/dev/cu.usbmodemFD141", 9600);
 }
 
 void draw() {

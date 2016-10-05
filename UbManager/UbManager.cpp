@@ -64,6 +64,7 @@ void UbManager::resetNotes() {//全てのノートをリセット
 }
 
 void UbManager::play(int ubID) {
+    if(!isDocking) {printf("**NO UB!**\n"); return;}
     int data[2] = {PLAY_UB, 0};
     sendData(data, sizeof(data), ubID);
     printf("play!\n");
@@ -75,16 +76,19 @@ void UbManager::playAll() {
 }
 
 void UbManager::playAt(int ubID, int time) {
+    if(!isDocking) {printf("**NO UB!**\n"); return;}
     int data[2] = {PLAY_UB, time};
     sendData(data, sizeof(data), ubID);
 }
 
 void UbManager::pause(int ubID) {
+    if(!isDocking) {printf("**NO UB!**\n"); return;}
     int data = PAUSE_UB;
     sendData(&data, sizeof(data), ubID);
 }
 
 void UbManager::stop(int ubID) {
+    if(!isDocking) {printf("**NO UB!**\n"); return;}
     int data = STOP_UB;
     sendData(&data, sizeof(data), ubID);
 }
