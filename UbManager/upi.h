@@ -63,13 +63,9 @@ public:
         FILE *fp = popen(buf, "r");
         while(fgets(buf,sizeof(buf),fp)) {
             strcpy(input, buf);
-            if(ubm.isDocking) {
-                char    *dataList[MAX];
-                split(buf, ", \n", dataList);
-                parse(dataList);
-            }else {
-                printf("%s **NO UB!**\n", buf);
-            }
+            char    *dataList[MAX];
+            split(buf, ", \n", dataList);
+            parse(dataList);
         }
         pclose(fp);
     }

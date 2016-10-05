@@ -31,13 +31,13 @@ void UbManager::addNote(int ts, int intensity) {//ノートをユビに追加
 }
 
 void UbManager::addNote(Note note) {//ノートをユビに追加
-    if(!isDocking) return;
+    if(!isDocking) {printf("**NO UB!**\n"); return;}
     ubs[dockedUbID].notes.push_back(note);
     ubs[dockedUbID].notes.sort();
 }
 
 void UbManager::sendNotes() {//複数ノートをユビに送信
-    if(!isDocking) return;
+    if(!isDocking) {printf("**NO UB!**\n"); return;}
     
     ubs[dockedUbID].notes.sort();
     int *data = (int *)calloc(1+2*ubs[dockedUbID].notes.size(), sizeof(int));
@@ -56,7 +56,7 @@ void UbManager::sendNotes() {//複数ノートをユビに送信
 }
 
 void UbManager::resetNotes() {//全てのノートをリセット
-    if(!isDocking) return;
+    if(!isDocking) {printf("**NO UB!**\n"); return;}
     ubs[dockedUbID].notes.clear();
     int data = RESET_NOTE;
     sendData(&data, sizeof(data), dockedUbID);
