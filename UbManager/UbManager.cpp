@@ -3,6 +3,7 @@
 UbManager::UbManager() {
     active = 0;
     dockedUbID = -1;
+    destUbID = -1;
     isDocking = false;
     startServer();
 }
@@ -12,13 +13,13 @@ UbManager::~UbManager() {
 }
 
 void UbManager::sendLoop(int loop) {//ループ周期の送信
-    if(!isDocking) return;
+    if(destUbID == -1) return;
     int data[2];
-    ubs[dockedUbID].loop = loop;
+    ubs[destUbID].loop = loop;
     data[0] = SET_LOOP;
     data[1] = loop;
     
-    sendData(data, sizeof(data), dockedUbID);
+    sendData(data, sizeof(data), destUbID);
     printf("send loop %d\n",loop);
 }
 
@@ -31,42 +32,42 @@ void UbManager::addNote(int ts, int intensity) {//ノートをユビに追加
 }
 
 void UbManager::addNote(Note note) {//ノートをユビに追加
-    if(!isDocking) {printf("**NO UB!**\n"); return;}
-    ubs[dockedUbID].notes.push_back(note);
-    ubs[dockedUbID].notes.sort();
+    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    ubs[destUbID].notes.push_back(note);
+    ubs[destUbID].notes.sort();
 }
 
 void UbManager::sendNotes() {//複数ノートをユビに送信
-    if(!isDocking) {printf("**NO UB!**\n"); return;}
+    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
     
-    ubs[dockedUbID].notes.sort();
-    int *data = (int *)calloc(1+2*ubs[dockedUbID].notes.size(), sizeof(int));
+    ubs[destUbID].notes.sort();
+    int *data = (int *)calloc(1+2*ubs[destUbID].notes.size(), sizeof(int));
     int *dp = data;
     
     *dp++ = SET_NOTE;
-    auto it = ubs[dockedUbID].notes.begin();
-    while(it != ubs[dockedUbID].notes.end()) {
+    auto it = ubs[destUbID].notes.begin();
+    while(it != ubs[destUbID].notes.end()) {
         Note note = (Note)*it;
         *dp++ = note.timeStamp;
         *dp++ = note.intensity;
         ++it;
     }
-    sendData(data, 1+2*ubs[dockedUbID].notes.size()*sizeof(int), dockedUbID);
+    sendData(data, 1+2*ubs[destUbID].notes.size()*sizeof(int), destUbID);
     printf("send notes\n");
 }
 
 void UbManager::resetNotes() {//全てのノートをリセット
-    if(!isDocking) {printf("**NO UB!**\n"); return;}
-    ubs[dockedUbID].notes.clear();
+    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    ubs[destUbID].notes.clear();
     int data = RESET_NOTE;
-    sendData(&data, sizeof(data), dockedUbID);
+    sendData(&data, sizeof(data), destUbID);
     printf("reset notes\n");
 }
 
-void UbManager::play(int ubID) {
-    if(!isDocking) {printf("**NO UB!**\n"); return;}
+void UbManager::play() {
+    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
     int data[2] = {PLAY_UB, 0};
-    sendData(data, sizeof(data), ubID);
+    sendData(data, sizeof(data), destUbID);
     printf("play!\n");
 }
 
@@ -75,26 +76,39 @@ void UbManager::playAll() {
     broadcast(data, sizeof(data));
 }
 
-void UbManager::playAt(int ubID, int time) {
-    if(!isDocking) {printf("**NO UB!**\n"); return;}
+void UbManager::playAt(int time) {
+    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
     int data[2] = {PLAY_UB, time};
-    sendData(data, sizeof(data), ubID);
+    sendData(data, sizeof(data), destUbID);
 }
 
-void UbManager::pause(int ubID) {
-    if(!isDocking) {printf("**NO UB!**\n"); return;}
+void UbManager::pause() {
+    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
     int data = PAUSE_UB;
-    sendData(&data, sizeof(data), ubID);
+    sendData(&data, sizeof(data), destUbID);
 }
 
-void UbManager::stop(int ubID) {
-    if(!isDocking) {printf("**NO UB!**\n"); return;}
+void UbManager::stop() {
+    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
     int data = STOP_UB;
-    sendData(&data, sizeof(data), ubID);
+    sendData(&data, sizeof(data), destUbID);
+}
+
+void UbManager::stopAll() {
+    int data = STOP_UB;
+    broadcast(&data, sizeof(int));
 }
 
 int UbManager::getDockedUbID() {
     return dockedUbID;
+}
+
+int UbManager::getDestUbID() {
+    return dockedUbID;
+}
+
+void UbManager::setDestUbID(int destID) {
+    destUbID = destID;
 }
 
 void UbManager::startServer() {
@@ -216,6 +230,7 @@ void *UbManager::threadFunction(void *data) {
                     //発見したらドッキングしているユビIDを記録し、返事する
                     ubm->confirm(UB_DOCKED, i);
                     ubm->dockedUbID = i;
+                    ubm->destUbID = i;
                     ubm->isDocking = true;
                     ubm->callback(UB_DOCKED, i);
                     onList = true;

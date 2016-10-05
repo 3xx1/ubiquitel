@@ -15,9 +15,9 @@ public:
     };
     ~TestApp(){};
     
-    void play() { if(n >= 0) ubm.playAt(n, 5000); printf("ub%d play!\n", n);}
-    void pause() { if(n >= 0) ubm.pause(n); printf("ub%d pause!\n", n);}
-    void stop() { if(n >= 0) ubm.stop(n); printf("ub%d stop!\n", n);}
+    void play() { if(n >= 0) ubm.setDestUbID(n); ubm.playAt(5000); printf("ub%d play!\n", n);}
+    void pause() { if(n >= 0) ubm.setDestUbID(n); ubm.pause(); printf("ub%d pause!\n", n);}
+    void stop() { if(n >= 0) ubm.setDestUbID(n); ubm.stop(); printf("ub%d stop!\n", n);}
     void sync() {ubm.sync(); printf("sync ub!\n");}
     void search() {ubm.search(); printf("searching ub...\n");}
 

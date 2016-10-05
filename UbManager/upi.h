@@ -85,10 +85,13 @@ public:
             ubm.resetNotes();
         }
         else if(strcmp(dl[0], "play") == 0) {
-            ubm.playAt(ubm.getDockedUbID(), 0);
+            ubm.playAt(0);
         }
         else if(strcmp(dl[0], "stop") == 0) {
-            ubm.stop(ubm.getDockedUbID());
+            ubm.stop();
+        }
+        else if(strcmp(dl[0], "allstop") == 0) {
+            ubm.stopAll();
         }
         else if(strcmp(dl[0], "sync") == 0) {
             ubm.sync();

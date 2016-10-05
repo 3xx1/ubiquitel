@@ -219,6 +219,9 @@ public void keyPressed() {
   if (key == 'y') {
       println("sync,");
   }
+    if (key == 'h') {
+      println("allstop,");
+  }
   if (key == 'q') {
       quantize = !quantize;
   }

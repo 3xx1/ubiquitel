@@ -39,11 +39,15 @@ public:
     void resetNotes();//全てのノートをリセット
     void sync();//ユビクロックの同期
     void playAll();//全てのユビ同時再生
-    void play(int ubID);
-    void playAt(int ubID, int time);
-    void pause(int ubID);
-    void stop(int ubID);
+    void play();
+    void playAt(int time);
+    void pause();
+    void stop();
+    void stopAll();
     int getDockedUbID();//ドッキングしているユビIDゲッタ．ドッキングしていない時は-1を返す
+    int getDestUbID();//データ送信先ユビIDゲッタ．
+    void setDestUbID(int destID);//データ送信先ユビIDセッタ．
+
     void search();
     
     //コールバック用
@@ -56,7 +60,7 @@ public:
     }
 
 private:
-    int dockedUbID;
+    int dockedUbID, destUbID;
     std::vector<Ub> ubs;
     ListenerBase *m_listener;
     //サーバ用スレッド
