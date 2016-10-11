@@ -33,6 +33,10 @@ void setup() {
   
   ticker.attach(0.005, timer);
   udp.begin(6341);
+  for(int i=0;i<2;i++) {
+    numNotes[i] = 0;
+    looptime[i] = 0;
+  }
 }
 
 void loop() {

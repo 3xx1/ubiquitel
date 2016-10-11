@@ -23,8 +23,8 @@ void parsePacket() {
         setNote();
         break;
         case RESET_NOTE:
-        stopUb();
-        resetNote();
+        if(!isPlaying)
+          resetNote();
         break;
         case SEARCH_UB:
         notifyUb();

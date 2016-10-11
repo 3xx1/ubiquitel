@@ -12,13 +12,21 @@ void syncUb() {
 }
 
 void playUb() {
-  if(numNotes == 0) isPlaying = false;
+    Serial.println(rcnt);
+    Serial.println(now);
+    Serial.println(r);
+
+  if(numNotes[r] == 0) isPlaying = false;
   if(!isPlaying) {
-    for(int i=0;i<numNotes;i++) {
-      if(notes[i].sp<0) notes[i].sp += looptime;
-    }
-    now = looptime-40;
+    for(int i=0;i<numNotes[r];i++)
+      if(notes[r][i].sp<0) notes[r][i].sp += looptime[r];
+    now = looptime[r]-40;
+    rcnt = repeat[r];
     Serial.println(gtime);
+    Serial.println(rcnt);
+    Serial.println(now);
+    Serial.println(r);
+
     if(packet[1]>gtime) playtime = (int)packet[1]/res;
     else isPlaying =true;
   }
@@ -29,6 +37,7 @@ void pauseUb() {
 }
 
 void stopUb() {
+  Serial.println("stop");
   if(isPlaying) isPlaying =false;
   stopMotor();
   next = 0;
@@ -37,25 +46,35 @@ void stopUb() {
 }
 
 void stepTime() {
-    if(notes[next].sp == now && numNotes > 0)
+    if(notes[r][next].sp == now && numNotes[r] > 0)
       tapping = true;
     
     if(tapping) {
         stepMotor();
         stepCount++;
-        if(stepCount == notes[next].v) {
+        if(stepCount == notes[r][next].v) {
             tapping = false;
             stepCount = 0;
             stopMotor();
-            if(next < numNotes-1) next++;
+            if(next < numNotes[r]-1) next++;
             else {
               next = 0;
-              if(repeat == 1) stopUb();
-              else if(repeat > 1) repeat--;
+              if(rcnt == 1) {
+                if(numNotes[(r+1)%2]>0) {//次のバッファにデータがあるとき
+                  for(int i=0;i<numNotes[(r+1)%2];i++)
+                    if(notes[(r+1)%2][i].sp<0) notes[(r+1)%2][i].sp += looptime[(r+1)%2];
+                  rcnt = repeat[(r+1)%2];//リピート回数設定
+                  now = now + looptime[(r+1)%2] - looptime[r];//再生位置移動
+                  resetNote();                  
+                }
+                else stopUb();//次のバッファにデータがなければ停止
+              }
+              else if(rcnt > 1) rcnt--;
             }
         }
     }
-    now = (now+1)%looptime;
+    now = now+1;
+    if(now == looptime[r]) now = 0;
 }
 
 void stepMotor()

@@ -32,20 +32,23 @@ int packetSize = 0;
 int waiting[3] = {0,0,0};
 int resendPeriod = 1000;
 int resend_max = 5;
-int resendCound[3] = {resend_max,resend_max,resend_max};
+int resendCount[3] = {resend_max,resend_max,resend_max};
 
 //Dock
 int dockState = HIGH;
 
 //Note
-Note notes[1024];
-int numNotes = 0;
+Note notes[2][512];
+int numNotes[2];
+int looptime[2];
+int repeat[2];
+int rcnt = 0;
+int w = 0;
+int r = 0;
 int vTable[11] = {0,8,9,10,11,12,14,16,22,30,40};
 volatile int next = 0;
 
 //Tap
-int looptime = 0;
-int repeat = 0;
 bool isPlaying = false;
 volatile bool tapping = false;
 volatile int stepCount = 0;
@@ -55,6 +58,3 @@ int now = 0;
 unsigned long gtime = 0;
 int playtime = 0;
 int res = 5;
-
-
-
