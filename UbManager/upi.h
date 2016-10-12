@@ -5,25 +5,33 @@
 #include <sstream>
 #include "UbManager.h"
 #define MAX 4
+#define PATTERN_MAX 5
+#define UB_MAX 5
 
 class Upi {
 public:
     UbManager ubm;
     char input[256];
     FILE *rhythm[5][5];
-    
+    int nextPattern = {0,0,0,0,0};
+	int pmax, umax;
     Upi() {
         //コールバック関数の登録
         ubm.setCallback(this, &Upi::ubCallback);
         //子機たちのIPアドレス取得
         ubm.search();
     }
-    ~Upi(){}
+    ~Upi(){
+	  for(int r=0;r<pmax;r++) {
+		for(int u=0;u<umax;u++) {
+		  fclose(rhythm[r][u]);
+		}
+	  }
+	}
     
-    void rhythmOpen() {
-        int r = 0;
-        int u = 0;
-        char command[256];
+    void rhythmOpen(int pattern, int ub) {
+        pmax = pattern;
+        umax = ub;
         
         std::stringstream s;
         std::string fileName;
@@ -31,20 +39,24 @@ public:
         fileName = s.str();
         printf("%s\n", fileName.c_str());
 
-        if ((rhythm[r][u] = fopen(fileName.c_str(), "r")) == NULL) {
-            printf("file open error!!\n");
-            exit(EXIT_FAILURE);	/* (3)エラーの場合は通常、異常終了する */
-        }
-        
-        while (fgets(command, 256, rhythm[r][u]) != NULL) {
+		for(int r=0;r<pmax;r++) {
+		  for(int u=0;u<umax;u++) {
+			if ((rhythm[r][u] = fopen(fileName.c_str(), "r")) == NULL) {
+			  printf("file open error!!\n");
+			}
+		  }
+		}
+    }
+    
+	void sendCommand(int pattern, int ub) {
+        char command[256];
+        while (fgets(command, 256, rhythm[pattern][ub]) != NULL) {
             printf("%s", command);
             char    *dataList[MAX];
             split(command, ", \n", dataList);
             parse(dataList);
         }
-        fclose(rhythm[r][u]);	/* (5)ファイルのクローズ */
-    }
-    
+	}
     void ubCallback(CallbackType cbt, int ubID){//ユビ状況，ユビID
         int a = 400;
         switch(cbt) {
@@ -63,6 +75,7 @@ public:
                 break;
                 
             case UB_PLAYED://リズムデータ要求
+			  if(nextPattern[ubID]<pmax) sendCommand(nextPattern[ubID]++, ubID);
                 printf("ub%d required new rhythm!\n", ubID);
                 break;
         }
