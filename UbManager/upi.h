@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
+#include <sstream>
 #include "UbManager.h"
 #define MAX 4
 
@@ -8,6 +10,7 @@ class Upi {
 public:
     UbManager ubm;
     char input[256];
+    FILE *rhythm[5][5];
     
     Upi() {
         //コールバック関数の登録
@@ -16,6 +19,31 @@ public:
         ubm.search();
     }
     ~Upi(){}
+    
+    void rhythmOpen() {
+        int r = 0;
+        int u = 0;
+        char command[256];
+        
+        std::stringstream s;
+        std::string fileName;
+        s << "rhythm" << r << u << ".txt";
+        fileName = s.str();
+        printf("%s\n", fileName.c_str());
+
+        if ((rhythm[r][u] = fopen(fileName.c_str(), "r")) == NULL) {
+            printf("file open error!!\n");
+            exit(EXIT_FAILURE);	/* (3)エラーの場合は通常、異常終了する */
+        }
+        
+        while (fgets(command, 256, rhythm[r][u]) != NULL) {
+            printf("%s", command);
+            char    *dataList[MAX];
+            split(command, ", \n", dataList);
+            parse(dataList);
+        }
+        fclose(rhythm[r][u]);	/* (5)ファイルのクローズ */
+    }
     
     void ubCallback(CallbackType cbt, int ubID){//ユビ状況，ユビID
         int a = 400;
@@ -32,6 +60,10 @@ public:
                 
             case UB_UNDOCKED://ドッキング解除した時
                 printf("ub%d undocked!\n", ubID);
+                break;
+                
+            case UB_PLAYED://リズムデータ要求
+                printf("ub%d required new rhythm!\n", ubID);
                 break;
         }
     }
@@ -78,8 +110,8 @@ public:
         else if(strcmp(dl[0], "sendNotes") == 0) {
             ubm.sendNotes();
         }
-        else if(strcmp(dl[0], "sendLoop") == 0) {
-            ubm.sendLoop(atoi(dl[1])*16.7, atoi(dl[2]));
+        else if(strcmp(dl[0], "addLoop") == 0) {
+            ubm.addLoop(atoi(dl[1])*16.7, atoi(dl[2]));
         }
         else if(strcmp(dl[0], "reset") == 0) {
             ubm.resetNotes();

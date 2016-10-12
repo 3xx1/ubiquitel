@@ -20,11 +20,11 @@ void parsePacket() {
         setLoop();
         break;
         case SET_NOTE:
-        setNote();
+        setTaps();
         break;
         case RESET_NOTE:
         if(!isPlaying)
-          resetNote();
+          resetTaps();
         break;
         case SEARCH_UB:
         notifyUb();
@@ -44,11 +44,12 @@ void sendData(const CallbackType cbt) {
 }
 
 void waitForConfirmation() {
-  for(int i=0;i<3;i++) {
+  for(int i=0;i<4;i++) {
     if(waiting[i] > 0) waiting[i]--;
     if(waiting[i] == 1) {
       sendData((CallbackType)i);
-      Serial.println(waiting[i]);
+      Serial.print("waiting ");
+      Serial.println(i);
     }
   }
 }

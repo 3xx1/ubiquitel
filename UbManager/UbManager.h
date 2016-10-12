@@ -32,7 +32,7 @@ public:
     
     UbManager();
     ~UbManager();
-    void sendLoop(int loop, int repeat);//ループ周期、ループ回数をユビに送信
+    void addLoop(int loop, int repeat);//ループ周期、ループ回数をユビに送信
     void addNote(int ts, int intensity);//覚えさせたいノートを追加
     void addNote(Note note);//覚えさせたいノートを追加
     void sendNotes();//覚えさせたノートをユビに送信

@@ -12,21 +12,13 @@ void syncUb() {
 }
 
 void playUb() {
-    Serial.println(rcnt);
-    Serial.println(now);
-    Serial.println(r);
-
-  if(numNotes[r] == 0) isPlaying = false;
+  if(numTaps[r] == 0) isPlaying = false;
   if(!isPlaying) {
-    for(int i=0;i<numNotes[r];i++)
-      if(notes[r][i].sp<0) notes[r][i].sp += looptime[r];
     now = looptime[r]-40;
     rcnt = repeat[r];
-    Serial.println(gtime);
-    Serial.println(rcnt);
-    Serial.println(now);
-    Serial.println(r);
-
+    //次のバッファにデータがないとき
+    if(numTaps[(r+1)%2]==0) sendData(UB_PLAYED);
+    //タイマー再生機能
     if(packet[1]>gtime) playtime = (int)packet[1]/res;
     else isPlaying =true;
   }
@@ -46,28 +38,32 @@ void stopUb() {
 }
 
 void stepTime() {
-    if(notes[r][next].sp == now && numNotes[r] > 0)
+    if(taps[r][next].sp == now && numTaps[r] > 0)
       tapping = true;
     
     if(tapping) {
         stepMotor();
         stepCount++;
-        if(stepCount == notes[r][next].v) {
+        if(stepCount == taps[r][next].v) {
             tapping = false;
             stepCount = 0;
             stopMotor();
-            if(next < numNotes[r]-1) next++;
+            if(next < numTaps[r]-1) next++;
             else {
               next = 0;
               if(rcnt == 1) {
-                if(numNotes[(r+1)%2]>0) {//次のバッファにデータがあるとき
-                  for(int i=0;i<numNotes[(r+1)%2];i++)
-                    if(notes[(r+1)%2][i].sp<0) notes[(r+1)%2][i].sp += looptime[(r+1)%2];
+                if(numTaps[(r+1)%2]>0) {//次のバッファにデータがあるとき
                   rcnt = repeat[(r+1)%2];//リピート回数設定
                   now = now + looptime[(r+1)%2] - looptime[r];//再生位置移動
-                  resetNote();                  
+                  resetTaps();
+                  sendData(UB_PLAYED);                 
                 }
                 else stopUb();//次のバッファにデータがなければ停止
+              }
+              else if(rcnt == 0 && numTaps[(r+1)%2]>0) {
+                rcnt = repeat[(r+1)%2];//リピート回数設定
+                now = now + looptime[(r+1)%2] - looptime[r];//再生位置移動
+                resetTaps(); 
               }
               else if(rcnt > 1) rcnt--;
             }

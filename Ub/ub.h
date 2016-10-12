@@ -14,13 +14,14 @@ typedef enum {
   UB_FOUND,
   UB_DOCKED,
   UB_UNDOCKED,
+  UB_PLAYED
 }CallbackType;
 
-typedef struct Note {
+typedef struct Tap {
   int ts;//Time stamp(Release point)
   int v;//Velocity
   int sp;//Start point
-}Note;
+}Tap;
 
 //Comm
 const char* ssid = "ESPAP";
@@ -29,17 +30,17 @@ WiFiUDP udp;
 IPAddress ubmip;
 long packet[1000];
 int packetSize = 0;
-int waiting[3] = {0,0,0};
-int resendPeriod = 1000;
+int waiting[4] = {0,0,0,0};
+int resendPeriod = 500;
 int resend_max = 5;
 int resendCount[3] = {resend_max,resend_max,resend_max};
 
 //Dock
 int dockState = HIGH;
 
-//Note
-Note notes[2][512];
-int numNotes[2];
+//Tap
+Tap taps[2][512];
+int numTaps[2];
 int looptime[2];
 int repeat[2];
 int rcnt = 0;
@@ -48,7 +49,6 @@ int r = 0;
 int vTable[11] = {0,8,9,10,11,12,14,16,22,30,40};
 volatile int next = 0;
 
-//Tap
 bool isPlaying = false;
 volatile bool tapping = false;
 volatile int stepCount = 0;

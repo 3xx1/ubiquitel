@@ -12,16 +12,13 @@ UbManager::~UbManager() {
     stopServer();
 }
 
-void UbManager::sendLoop(int loop, int repeat) {//ループ周期の送信
+void UbManager::addLoop(int loop, int repeat) {//ループ周期の送信
     if(destUbID == -1) return;
     int data[3];
     ubs[destUbID].loop = loop;
-    data[0] = SET_LOOP;
-    data[1] = loop;
-    data[2] = repeat;
+    ubs[destUbID].repeat = repeat;
 
-    sendData(data, sizeof(data), destUbID);
-    printf("send loop %d\n",loop);
+    printf("add loop %d\n",loop);
 }
 
 void UbManager::addNote(int ts, int intensity) {//ノートをユビに追加
@@ -42,10 +39,13 @@ void UbManager::sendNotes() {//複数ノートをユビに送信
     if(destUbID == -1) {printf("**NO UB!**\n"); return;}
     
     ubs[destUbID].notes.sort();
-    int *data = (int *)calloc(1+2*ubs[destUbID].notes.size(), sizeof(int));
+    int size = 3+2*ubs[destUbID].notes.size();
+    int *data = (int *)calloc(size, sizeof(int));
     int *dp = data;
     
     *dp++ = SET_NOTE;
+    *dp++ = ubs[destUbID].loop;
+    *dp++ = ubs[destUbID].repeat;
     auto it = ubs[destUbID].notes.begin();
     while(it != ubs[destUbID].notes.end()) {
         Note note = (Note)*it;
@@ -53,7 +53,7 @@ void UbManager::sendNotes() {//複数ノートをユビに送信
         *dp++ = note.intensity;
         ++it;
     }
-    sendData(data, 1+2*ubs[destUbID].notes.size()*sizeof(int), destUbID);
+    sendData(data, size*sizeof(int), destUbID);
     printf("send notes\n");
 }
 
@@ -224,7 +224,6 @@ void *UbManager::threadFunction(void *data) {
         else if(type==UB_DOCKED) {//ドッキング
             //dockedUb探し
             char ip[16];
-            bool onList = false;
             strcpy(ip, inet_ntoa(senderinfo.sin_addr));
             for (int i=0; i<ubm->ubs.size(); i++) {
                 if (strcmp(ubm->ubs[i].ip,ip)==0) {
@@ -234,7 +233,6 @@ void *UbManager::threadFunction(void *data) {
                     ubm->destUbID = i;
                     ubm->isDocking = true;
                     ubm->callback(UB_DOCKED, i);
-                    onList = true;
                 }
             }
         }
@@ -249,16 +247,24 @@ void *UbManager::threadFunction(void *data) {
             else {//ドッキングしているものがない時
                 Ub ub;
                 ub.loop = 0;
-                bool onList = false;
                 strcpy(ub.ip, inet_ntoa(senderinfo.sin_addr));
                 
                 //ユビリストからドッキングしていたと思われるユビ探し
                 for (int i=0; i<ubm->ubs.size(); i++) {
                     if (strcmp(ubm->ubs[i].ip,ub.ip)==0) {
-                        onList= true;
                         ubm->confirm(UB_UNDOCKED, i);
                         ubm->callback(UB_UNDOCKED, i);
                     }
+                }
+            }
+        }
+        else if(type==UB_PLAYED) {
+            Ub ub;
+            strcpy(ub.ip, inet_ntoa(senderinfo.sin_addr));
+            for (int i=0; i<ubm->ubs.size(); i++) {
+                if (strcmp(ubm->ubs[i].ip,ub.ip)==0) {
+                    ubm->confirm(UB_PLAYED, i);
+                    ubm->callback(UB_PLAYED, i);
                 }
             }
         }

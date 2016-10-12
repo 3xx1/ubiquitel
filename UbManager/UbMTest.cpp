@@ -60,11 +60,11 @@ public:
                 ubm.addNote(200*14, 4);
                 ubm.addNote(200*15, 5);
                 
+                //ループ周期を追加
+                ubm.addLoop(200*16, 0);
+                
                 //追加したノートをユビに送信
                 ubm.sendNotes();
-              
-                //ループ周期をユビに送信
-                ubm.sendLoop(200*16, 0);
               
                 //以上のメソッドはドッキングしているユビにのみおこなわれるメソッド
                 break;
