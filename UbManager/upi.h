@@ -13,7 +13,7 @@ public:
     UbManager ubm;
     char input[256];
     FILE *rhythm[5][5];
-    int nextPattern = {0,0,0,0,0};
+    int nextPattern[PATTERN_MAX] = {0,0,0,0,0};
 	int pmax, umax;
     Upi() {
         //コールバック関数の登録
@@ -22,39 +22,48 @@ public:
         ubm.search();
     }
     ~Upi(){
-	  for(int r=0;r<pmax;r++) {
-		for(int u=0;u<umax;u++) {
-		  fclose(rhythm[r][u]);
-		}
-	  }
+        rhythmClose();
 	}
     
     void rhythmOpen(int pattern, int ub) {
         pmax = pattern;
         umax = ub;
         
-        std::stringstream s;
-        std::string fileName;
-        s << "rhythm" << r << u << ".txt";
-        fileName = s.str();
-        printf("%s\n", fileName.c_str());
-
 		for(int r=0;r<pmax;r++) {
-		  for(int u=0;u<umax;u++) {
-			if ((rhythm[r][u] = fopen(fileName.c_str(), "r")) == NULL) {
-			  printf("file open error!!\n");
-			}
-		  }
+            for(int u=0;u<umax;u++) {
+                std::stringstream s;
+                std::string fileName;
+                s << "rhythm" << r << u << ".txt";
+                fileName = s.str();
+                printf("%s\n", fileName.c_str());
+                if ((rhythm[r][u] = fopen(fileName.c_str(), "r")) == NULL) {
+                    printf("file open error!!\n");
+                }
+            }
 		}
+        for(int i=0;i<umax;i++) {
+            nextPattern[i] = 0;
+            sendCommand(nextPattern[i]++, i);
+        }
+    }
+    
+    void rhythmClose() {
+        for(int r=0;r<pmax;r++) {
+            for(int u=0;u<umax;u++) {
+                fclose(rhythm[r][u]);
+                nextPattern[u] = 0;
+            }
+        }
     }
     
 	void sendCommand(int pattern, int ub) {
         char command[256];
         while (fgets(command, 256, rhythm[pattern][ub]) != NULL) {
-            printf("%s", command);
             char    *dataList[MAX];
+            ubm.setDestUbID(ub);
             split(command, ", \n", dataList);
             parse(dataList);
+            ubm.setDestUbID(-1);
         }
 	}
     void ubCallback(CallbackType cbt, int ubID){//ユビ状況，ユビID
@@ -75,8 +84,17 @@ public:
                 break;
                 
             case UB_PLAYED://リズムデータ要求
-			  if(nextPattern[ubID]<pmax) sendCommand(nextPattern[ubID]++, ubID);
                 printf("ub%d required new rhythm!\n", ubID);
+                if(nextPattern[ubID]<pmax) {
+                    sendCommand(nextPattern[ubID]++, ubID);
+                    printf("sent new rhythm,%d!\n",nextPattern[ubID]-1);
+                }
+                else {
+                    for(int r=0;r<pmax;r++)
+                        fclose(rhythm[r][ubID]);
+                    nextPattern[ubID] = 0;
+                    printf("stopping rhythm!\n");
+                }
                 break;
         }
     }
@@ -134,9 +152,12 @@ public:
         }
         else if(strcmp(dl[0], "stop") == 0) {
             ubm.stop();
+
         }
         else if(strcmp(dl[0], "allstop") == 0) {
             ubm.stopAll();
+            ubm.resetAll();
+            rhythmClose();
         }
         else if(strcmp(dl[0], "sync") == 0) {
             ubm.sync();

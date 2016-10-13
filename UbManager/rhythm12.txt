@@ -1,6 +1,6 @@
 reset,
 add,0,100,
 add,60,100,
-add,105,100,
-addLoop,120,3,
+add,75,100,
+addLoop,120,2,
 sendNotes,

@@ -12,6 +12,7 @@ void syncUb() {
 }
 
 void playUb() {
+  Serial.println("play UB!");
   if(numTaps[r] == 0) isPlaying = false;
   if(!isPlaying) {
     now = looptime[r]-40;
@@ -19,8 +20,9 @@ void playUb() {
     //次のバッファにデータがないとき
     if(numTaps[(r+1)%2]==0) sendData(UB_PLAYED);
     //タイマー再生機能
-    if(packet[1]>gtime) playtime = (int)packet[1]/res;
-    else isPlaying =true;
+    //if(packet[1]/res>gtime) playtime = (int)packet[1]/res;
+    //else isPlaying =true;
+    isPlaying = true;
   }
 }
 

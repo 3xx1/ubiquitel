@@ -65,6 +65,12 @@ void UbManager::resetNotes() {//全てのノートをリセット
     printf("reset notes\n");
 }
 
+void UbManager::resetAll() {//全てのノートをリセット
+    int data = RESET_NOTE;
+    broadcast(&data, sizeof(int));
+    printf("reset All\n");
+}
+
 void UbManager::play() {
     if(destUbID == -1) {printf("**NO UB!**\n"); return;}
     int data[2] = {PLAY_UB, 0};

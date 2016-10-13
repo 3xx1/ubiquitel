@@ -37,6 +37,7 @@ public:
     void addNote(Note note);//覚えさせたいノートを追加
     void sendNotes();//覚えさせたノートをユビに送信
     void resetNotes();//全てのノートをリセット
+    void resetAll();//全てのユビのノートをリセット
     void sync();//ユビクロックの同期
     void playAll();//全てのユビ同時再生
     void play();
