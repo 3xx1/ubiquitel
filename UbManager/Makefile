@@ -4,7 +4,7 @@ UBAO	= UbManager.o ubApp.o
 UBMT	= UbMTest
 VUBT	= VUbTest
 UBAP	= ubApp
-FLAGS	= -std=c++11
+FLAGS	= -lpthread -std=c++11
 CC	= g++
 
 all:	ubm vub  uba
