@@ -5,7 +5,14 @@ UbManager::UbManager() {
     dockedUbID = -1;
     destUbID = -1;
     isDocking = false;
+	start = std::chrono::system_clock::now();
     startServer();
+}
+
+int UbManager::getTimestamp() {
+  std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
+  int duration = (double)sec.count()*1000-300;
+  return duration;
 }
 
 UbManager::~UbManager() {
@@ -140,6 +147,7 @@ void UbManager::stopServer() {
 void UbManager::sync() {//ユビクロックの同期
     int data = SYNC_UB;
     broadcast(&data, sizeof(int));
+	start = std::chrono::system_clock::now();
 }
 
 void UbManager::search() {//ユビ検索用一斉送信

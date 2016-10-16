@@ -166,13 +166,16 @@ class Upi {
   void parse(char *dl[]) {
 	if(strcmp(dl[0], "add") == 0) {
 	  int arg[2] = {atoi(dl[1]), atoi(dl[2])};
-	  ubm.addNote(arg[0]*16.7,arg[1]/20);
+	  ubm.addNote(arg[0]*15,arg[1]/20);
+	}
+	else if(strcmp(dl[0], "record") == 0) {
+	  ubm.addNote(ubm.getTimestamp(),dl[1]/20);
 	}
 	else if(strcmp(dl[0], "sendNotes") == 0) {
 	  ubm.sendNotes();
 	}
 	else if(strcmp(dl[0], "addLoop") == 0) {
-	  ubm.addLoop(atoi(dl[1])*16.7, atoi(dl[2]));
+	  ubm.addLoop(atoi(dl[1])*15, atoi(dl[2]));
 	}
 	else if(strcmp(dl[0], "reset") == 0) {
 	  ubm.resetNotes();
