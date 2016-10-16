@@ -56,7 +56,7 @@ void UbManager::sendNotes() {//複数ノートをユビに送信
     auto it = ubs[destUbID].notes.begin();
     while(it != ubs[destUbID].notes.end()) {
         Note note = (Note)*it;
-        *dp++ = note.timeStamp;
+        *dp++ = note.timeStamp%ubs[destUbID].loop;
         *dp++ = note.intensity;
         ++it;
     }
