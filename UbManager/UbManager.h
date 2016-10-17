@@ -2,6 +2,7 @@
 #define UbManager_h
 
 #include "ub.h"
+#include <chrono>
 
 // メソッドのポインタをイベントリスナとするためのテンプレートクラス
 class ListenerBase {
@@ -32,6 +33,7 @@ public:
     
     UbManager();
     ~UbManager();
+	int getTimestamp();//同期後の累積時間
     void addLoop(int loop, int repeat);//ループ周期、ループ回数をユビに送信
     void addNote(int ts, int intensity);//覚えさせたいノートを追加
     void addNote(Note note);//覚えさせたいノートを追加
@@ -63,7 +65,9 @@ public:
 private:
     int dockedUbID, destUbID;
     std::vector<Ub> ubs;
+    std::chrono::system_clock::time_point start;
     ListenerBase *m_listener;
+
     //サーバ用スレッド
     pthread_t thread;
     static void *threadFunction(void *data);
