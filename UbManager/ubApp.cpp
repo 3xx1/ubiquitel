@@ -5,7 +5,7 @@ int main(void) {
     bool l = true;
     int r = 0;
     int u = 0;
-    int pnum = 3;
+    int pnum = 4;
     int unum = 5;
     char input;
   //upi.start();
