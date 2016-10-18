@@ -121,6 +121,9 @@ int UbManager::getDestUbID() {
     return dockedUbID;
 }
 
+int UbManager::getUbSize() {
+    return ubs.size();
+}
 void UbManager::setDestUbID(int destID) {
     destUbID = destID;
 }

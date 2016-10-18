@@ -1,5 +1,5 @@
-﻿reset,
-add,0,180,
-add,24,180,
+reset,
+add,0,140,
+add,24,140,
 addloop,48,8,
 sendNotes,

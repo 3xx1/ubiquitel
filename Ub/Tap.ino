@@ -23,6 +23,10 @@ void playUb() {
     //if(packet[1]/res>gtime) playtime = (int)packet[1]/res;
     //else isPlaying =true;
     isPlaying = true;
+      Serial.println("ts");
+    for(int i=0;i<numTaps[r];i++) {
+      Serial.println(taps[r][i].sp);
+    }
   }
 }
 
@@ -40,13 +44,18 @@ void stopUb() {
 }
 
 void stepTime() {
-    if(taps[r][next].sp == now && numTaps[r] > 0)
+    if(taps[r][next].sp == now && numTaps[r] > 0){
       tapping = true;
-    
+            Serial.println("gtimePrepare");
+            Serial.println(gtime);
+    }
     if(tapping) {
         stepMotor();
         stepCount++;
         if(stepCount == taps[r][next].v) {
+            Serial.println("gtimeRelease");
+            Serial.println(gtime);
+
             tapping = false;
             stepCount = 0;
             stopMotor();
@@ -72,7 +81,7 @@ void stepTime() {
         }
     }
     now = now+1;
-    if(now == looptime[r]) now = 0;
+    if(now == looptime[r]) {now = 0;Serial.println("now is 0!");Serial.println(looptime[r]);}
 }
 
 void stepMotor()

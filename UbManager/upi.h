@@ -11,13 +11,15 @@
 class Upi {
  public:
   UbManager ubm;
+    pthread_t thread;
+    int active = 0;
   char input[256];
-  FILE *rhythm[5][5];
+  FILE *rhythm[PATTERN_MAX][UB_MAX];
   int nextPattern[PATTERN_MAX] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   int pmax, umax;
   Upi() {
 	//コールバック関数の登録
-	ubm.setCallback(this, &upi::ubCallback);
+	ubm.setCallback(this, &Upi::ubCallback);
 	//子機たちのIPアドレス取得
 	ubm.search();
   }
@@ -26,14 +28,16 @@ class Upi {
   }
 
   void setup(int patternNum, int ubNum){
-	pmax = patternNum;
-	umax = ubNum;
+      pmax = patternNum;
+      umax = ubNum;
+      for(int r=0;r<pmax;r++) {
+          for(int u=0;u<umax;u++) {
+              rhythm[r][u] = NULL;
+          }
+      }
   }
 
-  void rhythmOpen(int pattern, int ub) {
-	pmax = pattern;
-	umax = ub;
-        
+  void rhythmOpen() {
 	for(int r=0;r<pmax;r++) {
 	  for(int u=0;u<umax;u++) {
 		std::stringstream s;
@@ -41,7 +45,7 @@ class Upi {
 		s << "rhythm" << r << "/rhythm" << r << u << ".txt";
 		filename = s.str();
 		printf("%s\n", filename.c_str());
-		if ((rhythm[r][r] = fopen(filename.c_str(), "r")) == NULL) {
+		if ((rhythm[r][u] = fopen(filename.c_str(), "r")) == NULL) {
 		  printf("FILE OPEN ERROR!!\n");
 		}
 	  }
@@ -51,15 +55,18 @@ class Upi {
   void rhythmClose() {
 	for(int r=0;r<pmax;r++) {
 	  for(int u=0;u<umax;u++) {
-		fclose(rhythm[r][u]);
+          if(rhythm[r][u]) {
+              fclose(rhythm[r][u]);
+              rhythm[r][u] = NULL;
+          }
 		nextPattern[u] = 0;
 	  }
 	}
   }
   
-  void playSong(int r) {
+  void playSong() {
 	sendCommand("allstop,");
-	rhythmOpen(pmax,umax);
+	rhythmOpen();
 	for(int i=0;i<umax;i++) {
 	  nextPattern[i] = 0;
 	  sendCommand(nextPattern[i]++, i);
@@ -69,6 +76,7 @@ class Upi {
   
   void playRhythm(int r) {
 	sendCommand("allstop,");
+    rhythmOpen();
 	for(int i=0;i<umax;i++) {
 	  sendCommand(r, i);
 	  nextPattern[i] = pmax;
@@ -79,7 +87,7 @@ class Upi {
   void sendCommand(const char* command) {
 	  char buf[256];
 	  char    *dataList[MAX];
-	  strcpy(command, buf);
+	  strcpy(buf, command);
 	  split(buf, ", \n", dataList);
 	  parse(dataList);
   }
@@ -141,41 +149,62 @@ class Upi {
 	return cnt;
   }
 
-  void start() {
-	char buf[256];//p5アプリのパス格納とp5アプリからのデータ格納用
+    void start() {
+        int result;
         
-	//p5アプリのパス設定
-	FILE *pwd = popen("pwd", "r");
-	fgets(buf,sizeof(buf),pwd);
-	pclose(pwd);
+        if (!active) {
+            active = 1;
+            result = pthread_create(&thread, NULL, threadFunction, (void *)this);
+        }
         
-	char *fn = strstr(buf, "UbManager");
-	strcpy(fn, "ubiquitel_processing_app/ubiquitel_beatRecognition/application.macosx/ubiquitel_beatRecognition.app/Contents/MacOS/ubiquitel_beatRecognition");
+    }
+    
+    void stop() {
+        int result;
         
-	//processingアプリ起動
-	FILE *fp = popen(buf, "r");
-	while(fgets(buf,sizeof(buf),fp)) {
-	  strcpy(input, buf);
-	  char    *dataList[MAX];
-	  split(buf, ", \n", dataList);
-	  parse(dataList);
-	}
-	pclose(fp);
-  }
+        if (active) {
+            active = 0;
+            result = pthread_join( thread, NULL );
+        }
+    }
+    
+    static void *threadFunction(void *data) {
+        Upi *upi = (Upi *)data;
+        char buf[256];//p5アプリのパス格納とp5アプリからのデータ格納用
+        
+        //p5アプリのパス設定
+        FILE *pwd = popen("pwd", "r");
+        fgets(buf,sizeof(buf),pwd);
+        pclose(pwd);
+        
+        char *fn = strstr(buf, "UbManager");
+        strcpy(fn, "ubiquitel_processing_app/ubiquitel_beatRecognition/application.macosx/ubiquitel_beatRecognition.app/Contents/MacOS/ubiquitel_beatRecognition");
+        
+        //processingアプリ起動
+        FILE *fp = popen(buf, "r");
+        while(fgets(buf,sizeof(buf),fp)) {
+            strcpy(upi->input, buf);
+            char    *dataList[MAX];
+            upi->split(buf, ", \n", dataList);
+            upi->parse(dataList);
+        }
+        pclose(fp);
+        pthread_exit(NULL);
+    }
 
   void parse(char *dl[]) {
 	if(strcmp(dl[0], "add") == 0) {
 	  int arg[2] = {atoi(dl[1]), atoi(dl[2])};
-	  ubm.addNote(arg[0]*15,arg[1]/20);
+	  ubm.addNote(arg[0]*13,arg[1]/20);
 	}
 	else if(strcmp(dl[0], "record") == 0) {
-	  ubm.addNote(ubm.getTimestamp(),dl[1]/20);
+	  ubm.addNote(ubm.getTimestamp(),atoi(dl[1])/20);
 	}
 	else if(strcmp(dl[0], "sendNotes") == 0) {
 	  ubm.sendNotes();
 	}
-	else if(strcmp(dl[0], "addLoop") == 0) {
-	  ubm.addLoop(atoi(dl[1])*15, atoi(dl[2]));
+	else if(strcmp(dl[0], "addloop") == 0) {
+	  ubm.addLoop(atoi(dl[1])*13, atoi(dl[2]));
 	}
 	else if(strcmp(dl[0], "reset") == 0) {
 	  ubm.resetNotes();

@@ -1,7 +1,0 @@
-reset,
-add,96,100,
-add,144,100,
-add,160,100,
-add,192,100,
-addLoop,256,2,
-sendNotes,

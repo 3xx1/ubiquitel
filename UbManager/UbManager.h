@@ -49,6 +49,7 @@ public:
     void stopAll();
     int getDockedUbID();//ドッキングしているユビIDゲッタ．ドッキングしていない時は-1を返す
     int getDestUbID();//データ送信先ユビIDゲッタ．
+    int getUbSize();//ユビの個数
     void setDestUbID(int destID);//データ送信先ユビIDセッタ．
 
     void search();

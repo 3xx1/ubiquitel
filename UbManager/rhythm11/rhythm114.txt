@@ -1,4 +1,4 @@
-﻿reset,
+reset,
 add,16,180,
 add,40,180,
 add,64,180,

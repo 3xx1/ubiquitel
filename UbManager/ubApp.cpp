@@ -5,21 +5,28 @@ int main(void) {
     bool l = true;
     int r = 0;
     int u = 0;
-    int pnum = 4;
+    int pnum = 14;
     int unum = 5;
     char input;
-  //upi.start();
+    upi.start();
+    while(upi.ubm.getUbSize()!=5);
+    upi.setup(pnum,unum);
     while(l) {
         input = getchar();
-        else if(input=='p') {
-            upi.setup(pnum,unum);
-            upi.playRhythm();
+        if(input=='p') {
+            upi.playSong();
         }
         else if(input=='s') {
             r = 0;
             upi.sendCommand("allstop,");
         }
+        else if(input=='r') {
+            printf("Please enter the number of the rhythm pattern: ");
+            scanf("%d",&r);
+            upi.playRhythm(r);
+        }
         else if(input=='q') {
+            upi.stop();
             l = false;
         }
     }
