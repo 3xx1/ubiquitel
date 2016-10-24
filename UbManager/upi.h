@@ -20,6 +20,7 @@ public:
     int nextPattern[PATTERN_MAX] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     int pmax, umax;
     int lastNote = -1;
+    int recordUb = -1;
     Upi() {
         //コールバック関数の登録
         ubm.setCallback(this, &Upi::ubCallback);
@@ -68,11 +69,16 @@ public:
     
     void playSong() {
         if(isPlaying) return;
-        //sendCommand("allstop,");
         rhythmOpen();
         for(int i=0;i<umax;i++) {
-            nextPattern[i] = 0;
-            sendCommand(nextPattern[i]++, i);
+            if(i != recordUb) {
+                nextPattern[i] = 0;
+                sendCommand(nextPattern[i]++, i);
+            }else {
+                sendCommand("addloop,256,0,", i);
+                sendCommand("add,0,0,", i);
+                sendCommand("sendNotes,", i);
+            }
         }
         sendCommand("sync,");
         isPlaying = true;
@@ -98,9 +104,19 @@ public:
         parse(dataList);
     }
     
+    void sendCommand(const char* command, int ub) {
+        char buf[256];
+        char    *dataList[MAX];
+        strcpy(buf, command);
+        split(buf, ", \n", dataList);
+        ubm.setDestUbID(ub);
+        parse(dataList);
+        ubm.setDestUbID(-1);
+    }
+    
     void sendCommand(int pattern, int ub) {
         char command[256];
-        if(!rhythm[pattern][ub]) printf("no rhythm!");
+        if(!rhythm[pattern][ub]) {printf("no rhythm!\n");return;}
         while (fgets(command, 256, rhythm[pattern][ub]) != NULL) {
             char    *dataList[MAX];
             ubm.setDestUbID(ub);
@@ -129,7 +145,7 @@ public:
                 
             case UB_PLAYED://リズムデータ要求
                 //printf("ub%d required new rhythm!\n", ubID);
-                if(nextPattern[ubID]<pmax && ubID < umax) {
+                if(nextPattern[ubID]<pmax && ubID < umax && ubID != recordUb) {
                     sendCommand(nextPattern[ubID]++, ubID);
                     printf("sent new rhythm,%d-%d!\n",nextPattern[ubID]-1,ubID);
                 }
@@ -148,6 +164,9 @@ public:
                     sendCommand(nextPattern[ubID]++, ubID);
                     //printf("sent new rhythm,%d-%d!\n",nextPattern[ubID]-1,ubID);
                 }
+                else if(ubID == recordUb) {
+                    //printf("recording data!\n");
+                }
                 else {
                     printf("stopping rhythm!\n");
                 }
@@ -161,9 +180,10 @@ public:
                 nextPattern[ubID] = 0;
                 bool allstop=true;
                 for(int u=0;u<umax;u++) {
-                    if(nextPattern[u]>0) allstop=false;
+                    if(u != recordUb && nextPattern[u]>0) allstop=false;
                 }
                 if(allstop) {
+                    ubm.stopAll();
                     ubm.resetAll();
                     rhythmClose();
                     isPlaying = false;
@@ -221,12 +241,12 @@ public:
             strcpy(upi->input, buf);
             char    *dataList[MAX];
             upi->split(buf, ", \n", dataList);
-            upi->ubm.setDestUbID(4);
+            upi->ubm.setDestUbID(upi->recordUb);
             upi->parse(dataList);
             upi->ubm.setDestUbID(-1);
         }
         pclose(fp);
-        pthread_exit(NULL);
+        upi->stop();
     }
     
     void parse(char *dl[]) {
@@ -248,16 +268,16 @@ public:
         }
         else if(strcmp(dl[0], "addloop") == 0) {
             ubm.addLoop(atoi(dl[1])*13, atoi(dl[2]));
+
         }
         else if(strcmp(dl[0], "reset") == 0) {
             ubm.resetNotes();
         }
         else if(strcmp(dl[0], "play") == 0) {
-            ubm.playAt(0);
+            playSong();
         }
         else if(strcmp(dl[0], "stop") == 0) {
             ubm.stop();
-            
         }
         else if(strcmp(dl[0], "allstop") == 0) {
             ubm.stopAll();
@@ -266,6 +286,9 @@ public:
         }
         else if(strcmp(dl[0], "sync") == 0) {
             ubm.sync();
+        }
+        else if(strcmp(dl[0], "search") == 0) {
+            ubm.search();
         }
         else {
             printf("%s", input);

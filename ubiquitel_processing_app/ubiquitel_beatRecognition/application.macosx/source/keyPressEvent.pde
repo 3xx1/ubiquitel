@@ -6,16 +6,17 @@ void keyPressed() {
       intensity_rec.add(0);
       timestamp_rec.add(clock);
       println("sendNotes,");
+      println("sendNotes!");
     } else {
       recordingEventFlag = true;
       recordingInit();
       println("reset,");
       if(!quantize)
-        println("addLoop,"+clock+0);
+        println("addloop,"+clock+0);
       else {
         float t = 60*1000*3/(bpm*50);
         int qclk = ((int)(clk_last_note/(t*4))+1)*(int)t*4; 
-        println("addLoop," + 256 + "," + 0);
+        println("addloop," + 256 + "," + 0);
       }
     }
 
@@ -26,6 +27,7 @@ void keyPressed() {
   if (key == 'p') {
     if(playbackEventFlag) {
       playbackEventFlag = false;
+      println("play,");
     } else {
       playbackEventFlag = true;
       playbackInit();
@@ -42,6 +44,9 @@ void keyPressed() {
   }
   if (key == 's') {
       println("stop,");
+  }
+    if (key == 'f') {
+      println("search,");
   }
   if (key == 'y') {
       println("sync,");

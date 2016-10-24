@@ -15,6 +15,7 @@ void setTaps() {
     if(taps[w][i].sp<0) taps[w][i].sp += looptime[w];
   }
   w = (w+1)%2;
+  if(repeat[r] == 0 && isPlaying == true) repeat[r] = 1;
   Serial.println("set taps");
 }
 
