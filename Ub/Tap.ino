@@ -12,8 +12,7 @@ void syncUb() {
 }
 
 void playUb() {
-  Serial.println("play UB!");
-  if(numTaps[r] == 0) isPlaying = false;
+  if(numTaps[r] == 0) {isPlaying = false; return;}
   if(!isPlaying) {
     now = looptime[r]-40;
     rcnt = repeat[r];
@@ -28,6 +27,7 @@ void playUb() {
       Serial.println(taps[r][i].sp);
     }
   }
+  Serial.println("play UB!");
 }
 
 void pauseUb() {
@@ -69,7 +69,10 @@ void stepTime() {
                   resetTaps();
                   sendData(UB_PLAYED);                 
                 }
-                else stopUb();//次のバッファにデータがなければ停止
+                else {
+                  stopUb();//次のバッファにデータがなければ停止
+                  sendData(UB_STOPPED);
+                }
               }
               else if(rcnt == 0 && numTaps[(r+1)%2]>0) {
                 rcnt = repeat[(r+1)%2];//リピート回数設定

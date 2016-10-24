@@ -6,18 +6,17 @@ void keyPressed() {
       intensity_rec.add(0);
       timestamp_rec.add(clock);
       println("sendNotes,");
-      
-      if(!quantize)
-        println("sendLoop,"+clock);
-      else {
-        float t = 60*1000*3/(bpm*50);
-        int qclk = ((int)(clk_last_note/(t*4))+1)*(int)t*4; 
-        println("sendLoop,"+qclk);
-      }
     } else {
       recordingEventFlag = true;
       recordingInit();
       println("reset,");
+      if(!quantize)
+        println("addLoop,"+clock+0);
+      else {
+        float t = 60*1000*3/(bpm*50);
+        int qclk = ((int)(clk_last_note/(t*4))+1)*(int)t*4; 
+        println("addLoop," + 256 + "," + 0);
+      }
     }
 
     stroke(255,0,0);

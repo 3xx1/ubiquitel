@@ -11,7 +11,7 @@ UbManager::UbManager() {
 
 int UbManager::getTimestamp() {
   std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
-  int duration = (double)sec.count()*1000-300;
+  int duration = (double)sec.count()*1001-300;
   return duration;
 }
 
@@ -25,7 +25,7 @@ void UbManager::addLoop(int loop, int repeat) {//ループ周期の送信
     ubs[destUbID].loop = loop;
     ubs[destUbID].repeat = repeat;
 
-    printf("add loop %d\n",loop);
+    //printf("add loop %d\n",loop);
 }
 
 void UbManager::addNote(int ts, int intensity) {//ノートをユビに追加
@@ -33,7 +33,7 @@ void UbManager::addNote(int ts, int intensity) {//ノートをユビに追加
     note.timeStamp = ts;
     note.intensity = intensity;
     addNote(note);
-    printf("add note %d, %d\n",ts, intensity);
+    //printf("add note %d, %d\n",ts, intensity);
 }
 
 void UbManager::addNote(Note note) {//ノートをユビに追加
@@ -44,24 +44,22 @@ void UbManager::addNote(Note note) {//ノートをユビに追加
 
 void UbManager::sendNotes() {//複数ノートをユビに送信
     if(destUbID == -1) {printf("**NO UB!**\n"); return;}
-    
+
     ubs[destUbID].notes.sort();
     int size = 3+2*ubs[destUbID].notes.size();
     int *data = (int *)calloc(size, sizeof(int));
     int *dp = data;
-    
     *dp++ = SET_NOTE;
     *dp++ = ubs[destUbID].loop;
     *dp++ = ubs[destUbID].repeat;
     auto it = ubs[destUbID].notes.begin();
     while(it != ubs[destUbID].notes.end()) {
         Note note = (Note)*it;
-        *dp++ = note.timeStamp%ubs[destUbID].loop;
+        *dp++ = note.timeStamp;
         *dp++ = note.intensity;
         ++it;
     }
     sendData(data, size*sizeof(int), destUbID);
-    printf("send notes\n");
 }
 
 void UbManager::resetNotes() {//全てのノートをリセット
@@ -69,7 +67,7 @@ void UbManager::resetNotes() {//全てのノートをリセット
     ubs[destUbID].notes.clear();
     int data = RESET_NOTE;
     sendData(&data, sizeof(data), destUbID);
-    printf("reset notes\n");
+    //printf("reset notes\n");
 }
 
 void UbManager::resetAll() {//全てのノートをリセット
@@ -282,6 +280,16 @@ void *UbManager::threadFunction(void *data) {
                 if (strcmp(ubm->ubs[i].ip,ub.ip)==0) {
                     ubm->confirm(UB_PLAYED, i);
                     ubm->callback(UB_PLAYED, i);
+                }
+            }
+        }
+        else if(type==UB_STOPPED) {
+            Ub ub;
+            strcpy(ub.ip, inet_ntoa(senderinfo.sin_addr));
+            for (int i=0; i<ubm->ubs.size(); i++) {
+                if (strcmp(ubm->ubs[i].ip,ub.ip)==0) {
+                    ubm->confirm(UB_STOPPED, i);
+                    ubm->callback(UB_STOPPED, i);
                 }
             }
         }

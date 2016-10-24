@@ -1,5 +1,5 @@
 reset,
 add,32,160,
-add,96,160,
+add,94,160,
 addloop,128,4,
 sendNotes,

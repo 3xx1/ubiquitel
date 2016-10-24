@@ -14,6 +14,7 @@ typedef enum {
   UB_FOUND,
   UB_DOCKED,
   UB_UNDOCKED,
+  UB_STOPPED,
   UB_PLAYED
 }CallbackType;
 
@@ -30,10 +31,10 @@ WiFiUDP udp;
 IPAddress ubmip;
 long packet[1000];
 int packetSize = 0;
-int waiting[4] = {0,0,0,0};
-int resendPeriod = 500;
+int waiting[5] = {0,0,0,0,0};
+int resendPeriod = 200;
 int resend_max = 5;
-int resendCount[3] = {resend_max,resend_max,resend_max};
+int resendCount[5] = {resend_max,resend_max,resend_max,resend_max,resend_max};
 
 //Dock
 int dockState = HIGH;
@@ -46,7 +47,7 @@ int repeat[2];
 int rcnt = 0;
 int w = 0;
 int r = 0;
-int vTable[11] = {0,8,9,10,11,12,14,16,22,30,40};
+int vTable[11] = {1,8,9,10,11,12,14,16,22,30,40};
 volatile int next = 0;
 
 bool isPlaying = false;

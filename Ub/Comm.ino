@@ -44,12 +44,17 @@ void sendData(const CallbackType cbt) {
 }
 
 void waitForConfirmation() {
-  for(int i=0;i<4;i++) {
+  for(int i=0;i<3;i++) {
     if(waiting[i] > 0) waiting[i]--;
     if(waiting[i] == 1) {
-      sendData((CallbackType)i);
-      Serial.print("waiting ");
-      Serial.println(i);
+      if(resendCount[i]-- > 0) {
+        sendData((CallbackType)i);
+        Serial.print("waiting ");
+        Serial.println(i);
+      }else {
+        waiting[i] = 0;
+        resendCount[i] = resend_max;
+      }
     }
   }
 }
