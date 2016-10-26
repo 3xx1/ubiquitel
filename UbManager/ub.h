@@ -29,6 +29,7 @@ typedef enum {
     UB_UNDOCKED,
     UB_STOPPED,
     UB_PLAYED,
+    UB_TIMER
 }CallbackType;
 
 //Note:ユビを叩くタイミング(0~ループ周期)と強さ(1~10くらい？)を持つ構造体

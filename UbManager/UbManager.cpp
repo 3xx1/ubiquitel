@@ -5,8 +5,14 @@ UbManager::UbManager() {
     dockedUbID = -1;
     destUbID = -1;
     isDocking = false;
+    looptime = 0;
+    loopCount = 0;
 	start = std::chrono::system_clock::now();
     startServer();
+}
+
+void UbManager::setTimer(int lt) {
+    looptime = lt;
 }
 
 int UbManager::getTimestamp() {
@@ -38,8 +44,20 @@ void UbManager::addNote(int ts, int intensity) {//ノートをユビに追加
 
 void UbManager::addNote(Note note) {//ノートをユビに追加
     if(destUbID == -1) {printf("**NO UB!**\n"); return;}
-    ubs[destUbID].notes.push_back(note);
-    ubs[destUbID].notes.sort();
+    bool identical = false;
+    auto it = ubs[destUbID].notes.begin();
+    while(it != ubs[destUbID].notes.end()) {
+        Note *n = (Note *) &(*it);
+        if(n->timeStamp == note.timeStamp) {
+            n->intensity = note.intensity;
+            identical = true;
+        }
+        ++it;
+    }
+    if(!identical) {
+        ubs[destUbID].notes.push_back(note);
+        ubs[destUbID].notes.sort();
+    }
 }
 
 void UbManager::sendNotes() {//複数ノートをユビに送信
@@ -60,6 +78,43 @@ void UbManager::sendNotes() {//複数ノートをユビに送信
         ++it;
     }
     sendData(data, size*sizeof(int), destUbID);
+}
+
+void UbManager::sendNotes(int from, int to) {//特定時間分のノートをユビに送信
+    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    
+    ubs[destUbID].notes.sort();
+    int num = 0;
+    auto it = ubs[destUbID].notes.begin();
+    while(it != ubs[destUbID].notes.end()) {
+        Note note = (Note)*it;
+        if(from <= note.timeStamp && note.timeStamp < to)
+            num++;
+        ++it;
+    }
+    if(num == 0) {
+        addNote(to-1,0);
+        num++;
+    }
+    int size = 3+2*num;
+    int *data = (int *)calloc(size, sizeof(int));
+    int *dp = data;
+    *dp++ = SET_NOTE;
+    *dp++ = to - from;
+    *dp++ = ubs[destUbID].repeat;
+    it = ubs[destUbID].notes.begin();
+    while(it != ubs[destUbID].notes.end()) {
+        Note note = (Note)*it;
+        if(from <= note.timeStamp && note.timeStamp < to) {
+            *dp++ = note.timeStamp - from;
+            *dp++ = note.intensity;
+            printf("add note %d %d\n", note.timeStamp - from, note.intensity);
+
+        }
+        ++it;
+    }
+    sendData(data, size*sizeof(int), destUbID);
+    printf("send %d data, loop:%d\n", num, to - from);
 }
 
 void UbManager::resetNotes() {//全てのノートをリセット
@@ -126,6 +181,13 @@ void UbManager::setDestUbID(int destID) {
     destUbID = destID;
 }
 
+int UbManager::getNoteSize(int ubID) {
+    if(ubs.size() > ubID)
+        return ubs[ubID].notes.size();
+    else
+        return -1;
+}
+
 void UbManager::startServer() {
     int result;
     
@@ -149,6 +211,7 @@ void UbManager::sync() {//ユビクロックの同期
     int data = SYNC_UB;
     broadcast(&data, sizeof(int));
 	start = std::chrono::system_clock::now();
+    loopCount = 0;
 }
 
 void UbManager::search() {//ユビ検索用一斉送信
@@ -208,6 +271,13 @@ void *UbManager::threadFunction(void *data) {
         CallbackType type;
         socklen_t addrlen;
         addrlen = sizeof(senderinfo);
+        
+        //printf("!%d\n",ubm->getTimestamp());
+        if(ubm->looptime != 0 && ubm->getTimestamp()/ubm->looptime == ubm->loopCount) {
+            ubm->callback(UB_TIMER, NULL);
+            ubm->loopCount++;
+        }
+        
         n = recvfrom(sock, &type, sizeof(type), 0,
                      (struct sockaddr *)&senderinfo, &addrlen);
         if(n == -1) {

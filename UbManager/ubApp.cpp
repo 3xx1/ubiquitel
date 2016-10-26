@@ -1,6 +1,6 @@
 #include "upi.h"
 
-int main(void) {
+int main(int argc, char **argv) {
     Upi upi;
     bool l = true;
     int r = 0;
@@ -9,11 +9,20 @@ int main(void) {
     int unum = 5;
     int recordUb = -1;
     char input;
+    
+    if(argc != 3) {
+        printf("Wrong argument. \"./ubApp [recordUb] [ubNum]\"\n");
+        return 1;
+    }
+    
+    recordUb = atoi(argv[1]);
+    unum = atoi(argv[2]);
+    
+    if(recordUb >= unum) {
+        printf("Wrong argument. RecordUb must be smaller than unum.\n");
+        return 1;
+    }
     upi.start();
-    printf("enter the UBID to record!\n");
-    scanf("%d",&recordUb);
-    printf("enter the UNUM!\n");
-    scanf("%d",&unum);
     while(upi.ubm.getUbSize()<unum);
     upi.setup(pnum,unum);
     upi.recordUb = recordUb;

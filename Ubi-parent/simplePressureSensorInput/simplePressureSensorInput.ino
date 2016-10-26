@@ -7,8 +7,10 @@ void setup() {
 }
 
 void loop() {
-  out[cnt%7] = map(analogRead(sensorPin),0,1023,0,255);
-  out[cnt%7] = out[cnt%7]*out[cnt%7]*out[cnt%7]*out[cnt%7]/255/255/255;
+  double tmp = map(analogRead(sensorPin),0,1023,0,255)/255.0;
+  for(int i=0;i<3;i++)
+    tmp *= tmp;
+  out[cnt%7] = tmp*255;
   cnt++;
 
   if(cnt%7 == 0) {

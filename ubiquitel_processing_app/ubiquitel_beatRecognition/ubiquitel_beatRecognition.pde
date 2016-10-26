@@ -37,7 +37,7 @@ String systemMessage = "press 'r' to start recording, press 'p' to play recorded
 void setup() {
   size(800, 400);
   intensityRecognitionEventFlag = false;
-  recordingEventFlag = false;
+  recordingEventFlag = true;
   playbackEventFlag = false;
   println(systemMessage);
   myPort = new Serial(this, "/dev/cu.usbmodemFD141", 9600);

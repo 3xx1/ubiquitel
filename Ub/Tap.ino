@@ -7,12 +7,20 @@ void notifyUb() {
 
 void syncUb() {
   gtime = 0;
-  playtime = 20;
+  playtime = 100;
   stopUb();
 }
 
 void playUb() {
-  if(numTaps[r] == 0) {isPlaying = false; return;}
+  if(numTaps[r] == 0) {
+    isPlaying = false;
+    if(numTaps[(r+1)%2]) {
+      r = (r+1)%2;
+      resetTaps();
+      w = r;
+    }
+    return;
+    }
   if(!isPlaying) {
     now = looptime[r]-40;
     rcnt = repeat[r];

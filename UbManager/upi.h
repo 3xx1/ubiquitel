@@ -14,6 +14,7 @@ public:
     pthread_t thread;
     bool repeat =false;
     bool isPlaying = false;
+    int isRecording = 0;
     int active = 0;
     char input[256];
     FILE *rhythm[PATTERN_MAX][UB_MAX];
@@ -26,6 +27,7 @@ public:
         ubm.setCallback(this, &Upi::ubCallback);
         //子機たちのIPアドレス取得
         ubm.search();
+        ubm.setTimer(128*13);
     }
     ~Upi(){
         rhythmClose();
@@ -75,7 +77,8 @@ public:
                 nextPattern[i] = 0;
                 sendCommand(nextPattern[i]++, i);
             }else {
-                sendCommand("addloop,256,0,", i);
+                sendCommand("reset,",i);
+                sendCommand("addloop,127,0,", i);
                 sendCommand("add,0,0,", i);
                 sendCommand("sendNotes,", i);
             }
@@ -128,6 +131,8 @@ public:
     
     void ubCallback(CallbackType cbt, int ubID){//ユビ状況，ユビID
         int a = 400;
+        bool allstop;
+        
         switch(cbt) {
             case UB_FOUND://見つかった時
                 printf("ub%d found!\n", ubID);
@@ -147,7 +152,7 @@ public:
                 //printf("ub%d required new rhythm!\n", ubID);
                 if(nextPattern[ubID]<pmax && ubID < umax && ubID != recordUb) {
                     sendCommand(nextPattern[ubID]++, ubID);
-                    printf("sent new rhythm,%d-%d!\n",nextPattern[ubID]-1,ubID);
+                    //printf("sent new rhythm,%d-%d!\n",nextPattern[ubID]-1,ubID);
                 }
                 else if(repeat) {
                     nextPattern[ubID] = 0;
@@ -165,7 +170,24 @@ public:
                     //printf("sent new rhythm,%d-%d!\n",nextPattern[ubID]-1,ubID);
                 }
                 else if(ubID == recordUb) {
-                    //printf("recording data!\n");
+                    /*if(ubm.loopCount%2 == 1 && ubm.getNoteSize(recordUb) > 0) {
+                        ubm.setDestUbID(recordUb);
+                        ubm.sendNotes(0, 128*13);
+                        printf("send former! %d\n", ubm.loopCount);
+                        ubm.setDestUbID(-1);
+                    }
+                    else if(ubm.loopCount%2 == 0 && ubm.getNoteSize(recordUb) > 0) {
+                        ubm.setDestUbID(recordUb);
+                        ubm.sendNotes(128*13, 256*13);
+                        printf("send latter %d\n", ubm.loopCount);
+                        ubm.setDestUbID(-1);
+                    }
+                    else {
+                        ubm.setDestUbID(recordUb);
+                        ubm.addNote(0,0);
+                        printf("send no note %d\n", ubm.loopCount);
+                        ubm.setDestUbID(-1);
+                    }*/
                 }
                 else {
                     printf("stopping rhythm!\n");
@@ -178,7 +200,7 @@ public:
                 for(int r=0;r<pmax;r++)
                     if(rhythm[r][ubID]) fclose(rhythm[r][ubID]);
                 nextPattern[ubID] = 0;
-                bool allstop=true;
+                allstop = true;
                 for(int u=0;u<umax;u++) {
                     if(u != recordUb && nextPattern[u]>0) allstop=false;
                 }
@@ -188,6 +210,31 @@ public:
                     rhythmClose();
                     isPlaying = false;
                 }
+                break;
+                
+            case UB_TIMER:
+                //printf("Hey!%d\n", ubm.loopCount);
+                if(recordUb < 0) break;
+                usleep(100000);
+                if(ubm.loopCount%2 == 1 && ubm.getNoteSize(recordUb) > 0) {
+                    ubm.setDestUbID(recordUb);
+                    ubm.sendNotes(0, 128*13);
+                    //printf("send former! %d\n", ubm.getNoteSize(recordUb));
+                    ubm.setDestUbID(-1);
+                }
+                else if(ubm.loopCount%2 == 0 && ubm.getNoteSize(recordUb) > 0) {
+                    ubm.setDestUbID(recordUb);
+                    ubm.sendNotes(128*13, 256*13);
+                    //printf("send latter %d\n", ubm.getNoteSize(recordUb));
+                    ubm.setDestUbID(-1);
+                }
+                
+                if(ubm.getTimestamp() > 90000) {
+                    printf("force stop\n");
+                    sendCommand("allstop,");
+                }
+                if(isRecording > 0)   isRecording--;
+
                 break;
         }
     }
@@ -245,8 +292,14 @@ public:
             upi->parse(dataList);
             upi->ubm.setDestUbID(-1);
         }
+        upi->ubm.stopAll();
+        upi->ubm.resetAll();
+        upi->rhythmClose();
+        upi->isPlaying = false;
+        
         pclose(fp);
         upi->stop();
+        pthread_exit(NULL);
     }
     
     void parse(char *dl[]) {
@@ -255,6 +308,11 @@ public:
             ubm.addNote(arg[0]*13,arg[1]/20);
         }
         else if(strcmp(dl[0], "record") == 0) {
+            if(!isRecording) {
+                isRecording = 2;
+                ubm.resetNotes();
+                ubm.addLoop(128*13, 0);
+            }
             int a = (ubm.getTimestamp()-150)%(256*13);
             int b = (16*13)*(a/(16*13));//16分音符クオンタイズ
             if(lastNote != b) {
@@ -283,6 +341,7 @@ public:
             ubm.stopAll();
             ubm.resetAll();
             rhythmClose();
+            isPlaying = false;
         }
         else if(strcmp(dl[0], "sync") == 0) {
             ubm.sync();

@@ -30,7 +30,7 @@ class UbManager {
 public:
     bool isDocking;//ドッキングしてるユビがあるかを示すフラグ
     volatile int active;//サーバ起動中を示すフラグ
-    
+    int loopCount;
     UbManager();
     ~UbManager();
 	int getTimestamp();//同期後の累積時間
@@ -38,6 +38,7 @@ public:
     void addNote(int ts, int intensity);//覚えさせたいノートを追加
     void addNote(Note note);//覚えさせたいノートを追加
     void sendNotes();//覚えさせたノートをユビに送信
+    void sendNotes(int from, int to);//覚えさせたノートのうち、特定の時間領域をユビに送信
     void resetNotes();//全てのノートをリセット
     void resetAll();//全てのユビのノートをリセット
     void sync();//ユビクロックの同期
@@ -50,8 +51,9 @@ public:
     int getDockedUbID();//ドッキングしているユビIDゲッタ．ドッキングしていない時は-1を返す
     int getDestUbID();//データ送信先ユビIDゲッタ．
     int getUbSize();//ユビの個数
+    int getNoteSize(int ubID);
     void setDestUbID(int destID);//データ送信先ユビIDセッタ．
-
+    void setTimer(int lt);
     void search();
     
     //コールバック用
@@ -67,6 +69,7 @@ private:
     int dockedUbID, destUbID;
     std::vector<Ub> ubs;
     std::chrono::system_clock::time_point start;
+    int looptime;
     ListenerBase *m_listener;
 
     //サーバ用スレッド
