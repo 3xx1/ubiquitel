@@ -13,6 +13,9 @@ void setTaps() {
     taps[w][i].v = vTable[(int)packet[2*i+4]];
     taps[w][i].sp = taps[w][i].ts - taps[w][i].v;
     if(taps[w][i].sp<0) taps[w][i].sp += looptime[w];
+    Serial.print(taps[w][i].ts);
+    Serial.print(", ");
+    Serial.print(taps[w][i].v);
   }
   w = (w+1)%2;
   if(repeat[r] == 0 && isPlaying == true) repeat[r] = 1;

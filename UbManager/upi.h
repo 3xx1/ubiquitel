@@ -78,7 +78,7 @@ public:
                 sendCommand(nextPattern[i]++, i);
             }else {
                 sendCommand("reset,",i);
-                sendCommand("addloop,127,0,", i);
+                sendCommand("addloop,128,0,", i);
                 sendCommand("add,0,0,", i);
                 sendCommand("sendNotes,", i);
             }
@@ -170,24 +170,6 @@ public:
                     //printf("sent new rhythm,%d-%d!\n",nextPattern[ubID]-1,ubID);
                 }
                 else if(ubID == recordUb) {
-                    /*if(ubm.loopCount%2 == 1 && ubm.getNoteSize(recordUb) > 0) {
-                        ubm.setDestUbID(recordUb);
-                        ubm.sendNotes(0, 128*13);
-                        printf("send former! %d\n", ubm.loopCount);
-                        ubm.setDestUbID(-1);
-                    }
-                    else if(ubm.loopCount%2 == 0 && ubm.getNoteSize(recordUb) > 0) {
-                        ubm.setDestUbID(recordUb);
-                        ubm.sendNotes(128*13, 256*13);
-                        printf("send latter %d\n", ubm.loopCount);
-                        ubm.setDestUbID(-1);
-                    }
-                    else {
-                        ubm.setDestUbID(recordUb);
-                        ubm.addNote(0,0);
-                        printf("send no note %d\n", ubm.loopCount);
-                        ubm.setDestUbID(-1);
-                    }*/
                 }
                 else {
                     printf("stopping rhythm!\n");
@@ -215,7 +197,6 @@ public:
             case UB_TIMER:
                 //printf("Hey!%d\n", ubm.loopCount);
                 if(recordUb < 0) break;
-                usleep(100000);
                 if(ubm.loopCount%2 == 1 && ubm.getNoteSize(recordUb) > 0) {
                     ubm.setDestUbID(recordUb);
                     ubm.sendNotes(0, 128*13);
@@ -229,7 +210,7 @@ public:
                     ubm.setDestUbID(-1);
                 }
                 
-                if(ubm.getTimestamp() > 90000) {
+                if(ubm.getTimestamp() > 85000) {
                     printf("force stop\n");
                     sendCommand("allstop,");
                 }

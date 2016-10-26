@@ -125,7 +125,10 @@ void UbManager::resetNotes() {//全てのノートをリセット
     //printf("reset notes\n");
 }
 
-void UbManager::resetAll() {//全てのノートをリセット
+void UbManager::resetAll() {//全てのユビのノートをリセット
+    for(int i=0;i<ubs.size();i++) {
+        ubs[i].notes.clear();
+    }
     int data = RESET_NOTE;
     broadcast(&data, sizeof(int));
     printf("reset All\n");
