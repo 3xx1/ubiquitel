@@ -17,7 +17,7 @@ void UbManager::setTimer(int lt) {
 
 int UbManager::getTimestamp() {
   std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
-  int duration = (double)sec.count()*1001-300;
+  int duration = (double)sec.count()*1001-700;
   return duration;
 }
 

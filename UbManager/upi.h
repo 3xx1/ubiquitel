@@ -210,7 +210,7 @@ public:
                     ubm.setDestUbID(-1);
                 }
                 
-                if(ubm.getTimestamp() > 85000) {
+                if(ubm.getTimestamp() > 90000) {
                     printf("force stop\n");
                     sendCommand("allstop,");
                 }
