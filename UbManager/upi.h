@@ -14,7 +14,7 @@ public:
     pthread_t thread;
     bool repeat =false;
     bool isPlaying = false;
-    int isRecording = 0;
+    int isRecording = -1;
     int active = 0;
     char input[256];
     FILE *rhythm[PATTERN_MAX][UB_MAX];
@@ -195,27 +195,43 @@ public:
                 break;
                 
             case UB_TIMER:
-                //printf("Hey!%d\n", ubm.loopCount);
-                if(recordUb < 0) break;
-                if(ubm.loopCount%2 == 1 && ubm.getNoteSize(recordUb) > 0) {
-                    ubm.setDestUbID(recordUb);
-                    ubm.sendNotes(0, 128*13);
-                    //printf("send former! %d\n", ubm.getNoteSize(recordUb));
-                    ubm.setDestUbID(-1);
-                }
-                else if(ubm.loopCount%2 == 0 && ubm.getNoteSize(recordUb) > 0) {
-                    ubm.setDestUbID(recordUb);
-                    ubm.sendNotes(128*13, 256*13);
-                    //printf("send latter %d\n", ubm.getNoteSize(recordUb));
-                    ubm.setDestUbID(-1);
-                }
-                
-                if(ubm.getTimestamp() > 90000) {
+                if(ubm.getTimestamp() > 85000) {
                     printf("force stop\n");
                     sendCommand("allstop,");
                 }
-                if(isRecording > 0)   isRecording--;
-
+                
+                if(recordUb < 0) break;
+                if(ubm.loopCount%2 == 1 &&
+                   ubm.getNoteSize(recordUb) > 0 &&
+                   isRecording > 1) {
+                    ubm.setDestUbID(recordUb);
+                    ubm.addLoop(128*13,1);
+                    usleep(100000);
+                    ubm.sendNotes(0, 128*13);
+                    printf("send former! %d\n", ubm.getNoteSize(recordUb));
+                    ubm.setDestUbID(-1);
+                    isRecording--;
+                }
+                else if(ubm.loopCount%2 == 0 &&
+                        ubm.getNoteSize(recordUb) > 0  &&
+                        isRecording > 1) {
+                    ubm.setDestUbID(recordUb);
+                    ubm.addLoop(128*13,1);
+                    usleep(100000);
+                    ubm.sendNotes(128*13, 256*13);
+                    printf("send latter %d\n", ubm.getNoteSize(recordUb));
+                    ubm.setDestUbID(-1);
+                    isRecording--;
+                }
+                if(isRecording == 0) {
+                    ubm.setDestUbID(recordUb);
+                    usleep(100000);
+                    ubm.addLoop(256*13,0);
+                    ubm.sendNotes();
+                    printf("send all %d\n", ubm.getNoteSize(recordUb));
+                    ubm.setDestUbID(-1);
+                    isRecording = -1;
+                }
                 break;
         }
     }
@@ -289,8 +305,8 @@ public:
             ubm.addNote(arg[0]*13,arg[1]/20);
         }
         else if(strcmp(dl[0], "record") == 0) {
-            if(!isRecording) {
-                isRecording = 2;
+            if(isRecording<0) {
+                isRecording = 2 + ubm.loopCount%2;
                 ubm.resetNotes();
                 ubm.addLoop(128*13, 0);
             }

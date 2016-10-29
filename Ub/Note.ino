@@ -5,7 +5,7 @@ void setLoop() {
 }
 
 void setTaps() {
-  if(numTaps[w] != 0) return;
+  if(numTaps[w] != 0) {Serial.println("mada!");return;}
   setLoop();
   numTaps[w] = (packetSize-3*4)/8;
   for(int i=0;i<numTaps[w];i++) {
