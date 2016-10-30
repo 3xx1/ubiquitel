@@ -92,29 +92,39 @@ void UbManager::sendNotes(int from, int to) {//特定時間分のノートをユ
             num++;
         ++it;
     }
-    if(num == 0) {
-        addNote(to-1,0);
-        num++;
-    }
-    int size = 3+2*num;
-    int *data = (int *)calloc(size, sizeof(int));
-    int *dp = data;
-    *dp++ = SET_NOTE;
-    *dp++ = to - from;
-    *dp++ = ubs[destUbID].repeat;
-    it = ubs[destUbID].notes.begin();
-    while(it != ubs[destUbID].notes.end()) {
-        Note note = (Note)*it;
-        if(from <= note.timeStamp && note.timeStamp < to) {
-            *dp++ = note.timeStamp - from;
-            *dp++ = note.intensity;
-            printf("add note %d %d\n", note.timeStamp - from, note.intensity);
+    if(num == 0) sendEmptyLoop();
+	else{
+	    int size = 3+2*num;
+		int *data = (int *)calloc(size, sizeof(int));
+		int *dp = data;
+		*dp++ = SET_NOTE;
+		*dp++ = to - from;
+		*dp++ = ubs[destUbID].repeat;
+		it = ubs[destUbID].notes.begin();
+		while(it != ubs[destUbID].notes.end()) {
+		    Note note = (Note)*it;
+			if(from <= note.timeStamp && note.timeStamp < to) {
+			    *dp++ = note.timeStamp - from;
+				*dp++ = note.intensity;
+				printf("add note %d %d\n", note.timeStamp - from, note.intensity);
+			}
+			++it;
+		}
+		sendData(data, size*sizeof(int), destUbID);
+		printf("send %d data, loop:%d\n", num, to - from);
+	}
+}
 
-        }
-        ++it;
-    }
-    sendData(data, size*sizeof(int), destUbID);
-    printf("send %d data, loop:%d\n", num, to - from);
+void UbManager::sendEmptyLoop() {//空ループをユビに送信
+    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+
+    int data[5];
+    data[0] = SET_NOTE;
+    data[1] = ubs[destUbID].loop;
+    data[2] = ubs[destUbID].repeat;
+    data[3] = 0;
+	data[4] = 0;
+    sendData(data, 5*sizeof(int), destUbID);
 }
 
 void UbManager::resetNotes() {//全てのノートをリセット
@@ -275,7 +285,6 @@ void *UbManager::threadFunction(void *data) {
         socklen_t addrlen;
         addrlen = sizeof(senderinfo);
         
-        //printf("!%d\n",ubm->getTimestamp());
         if(ubm->looptime != 0 && ubm->getTimestamp()/ubm->looptime == ubm->loopCount) {
             ubm->callback(UB_TIMER, NULL);
             ubm->loopCount++;

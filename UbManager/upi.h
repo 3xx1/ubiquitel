@@ -78,9 +78,11 @@ public:
                 sendCommand(nextPattern[i]++, i);
             }else {
                 sendCommand("reset,",i);
-                sendCommand("addloop,128,0,", i);
-                sendCommand("add,0,0,", i);
-                sendCommand("sendNotes,", i);
+                sendCommand("addloop,128,1,", i);
+				ubm.setDestUbID(i);
+                ubm.sendEmptyLoop();
+				ubm.setDestUbID(-1);
+                nextPattern[i] = 0;
             }
         }
         sendCommand("sync,");
@@ -170,6 +172,8 @@ public:
                     //printf("sent new rhythm,%d-%d!\n",nextPattern[ubID]-1,ubID);
                 }
                 else if(ubID == recordUb) {
+				  //ネクストパターンを次のデータ送信可能フラグとして使用
+				  nextPattern[recordUb] = 1;
                 }
                 else {
                     printf("stopping rhythm!\n");
@@ -201,29 +205,25 @@ public:
                 }
                 
                 if(recordUb < 0) break;
-                if(ubm.loopCount%2 == 1 &&
-                   ubm.getNoteSize(recordUb) > 0 &&
-                   isRecording > 1) {
-                    ubm.setDestUbID(recordUb);
-                    ubm.addLoop(128*13,1);
-                    usleep(100000);
-                    ubm.sendNotes(0, 128*13);
-                    printf("send former! %d\n", ubm.getNoteSize(recordUb));
-                    ubm.setDestUbID(-1);
-                    isRecording--;
+                if(ubm.loopCount%2 == 1) {
+				    //再生バッファが空になってから次のデータを
+				    //送らないとリジェクトされる可能性あり
+				    if(!nextPattern[recordUb]) printf("Data will be rejected!\n");
+					ubm.setDestUbID(recordUb);
+					ubm.sendNotes(0, 128*13);
+					printf("send former! %d\n", ubm.getNoteSize(recordUb));
+					ubm.setDestUbID(-1);
+					nextPattern[recordUb] = 0;
                 }
-                else if(ubm.loopCount%2 == 0 &&
-                        ubm.getNoteSize(recordUb) > 0  &&
-                        isRecording > 1) {
+                else if(ubm.loopCount%2 == 0) {
+				    if(!nextPattern[recordUb]) printf("Data will be rejected!\n");
                     ubm.setDestUbID(recordUb);
-                    ubm.addLoop(128*13,1);
-                    usleep(100000);
                     ubm.sendNotes(128*13, 256*13);
                     printf("send latter %d\n", ubm.getNoteSize(recordUb));
                     ubm.setDestUbID(-1);
-                    isRecording--;
+					nextPattern[recordUb] = 0;
                 }
-                if(isRecording == 0) {
+                /*else if(isRecording == 0) {
                     ubm.setDestUbID(recordUb);
                     usleep(100000);
                     ubm.addLoop(256*13,0);
@@ -231,7 +231,8 @@ public:
                     printf("send all %d\n", ubm.getNoteSize(recordUb));
                     ubm.setDestUbID(-1);
                     isRecording = -1;
-                }
+					}*/
+				if(isRecording>0) isRecording--;
                 break;
         }
     }
@@ -306,9 +307,9 @@ public:
         }
         else if(strcmp(dl[0], "record") == 0) {
             if(isRecording<0) {
-                isRecording = 2 + ubm.loopCount%2;
+                isRecording = 2;
                 ubm.resetNotes();
-                ubm.addLoop(128*13, 0);
+                ubm.addLoop(128*13, 1);
             }
             int a = (ubm.getTimestamp()-150)%(256*13);
             int b = (16*13)*(a/(16*13));//16分音符クオンタイズ
