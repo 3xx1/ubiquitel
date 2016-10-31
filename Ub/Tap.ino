@@ -63,8 +63,6 @@ void stepTime() {
     
     //ユビ振り上げ中の処理
     if(tapping) {
-        stepMotor();
-        stepCount++;
         //ユビリリース処理
         if(stepCount == taps[r][next].v) {
             Serial.print("gtimeRelease, ");
@@ -74,29 +72,16 @@ void stepTime() {
             stepCount = 0;
             stopMotor();
             if(next < numTaps[r]) next++;
-            /*else {
-              //next = 0;
-              if(rcnt == 1) {
-                if(numTaps[(r+1)%2]>0) {//次のバッファにデータがあるとき
-                  rcnt = repeat[(r+1)%2];//リピート回数設定
-                  now = now + looptime[(r+1)%2] - looptime[r];//再生位置移動
-                  resetTaps();
-                  sendData(UB_PLAYED);                 
-                }
-                else {
-                  stopUb();//次のバッファにデータがなければ停止
-                  sendData(UB_STOPPED);
-                }
-              }
-              else if(rcnt == 0 && numTaps[(r+1)%2]>0) {
-                rcnt = repeat[(r+1)%2];//リピート回数設定
-                now = now + looptime[(r+1)%2] - looptime[r];//再生位置移動
-                resetTaps(); 
-              }
-              else if(rcnt > 1) rcnt--;
-            }*/
+        }
+        else {
+          stepMotor();
+          stepCount++;
         }
     }
+    
+    now = now+1;
+    if(now == looptime[r]) {now = 0;Serial.println("now is 0!");Serial.println(looptime[r]);}
+    
     //全タップ再生後、次のデータ待ち処理
     if((next == numTaps[r]) && (now >= looptime[r]-41)) {
       next = 0;
@@ -105,7 +90,7 @@ void stepTime() {
           rcnt = repeat[(r+1)%2];//リピート回数設定
           now = now + looptime[(r+1)%2] - looptime[r];//再生位置移動
           resetTaps();
-          sendData(UB_PLAYED);
+          sendData(UB_PLAYED);Serial.print("played!");Serial.println(gtime);
         }else{
           stopUb();//次のバッファにデータがなければ停止
           sendData(UB_STOPPED);
@@ -118,8 +103,6 @@ void stepTime() {
         }
       }else if(rcnt > 1) rcnt--;
     }
-    now = now+1;
-    if(now == looptime[r]) {now = 0;Serial.println("now is 0!");Serial.println(looptime[r]);}
 }
 
 void stepMotor()

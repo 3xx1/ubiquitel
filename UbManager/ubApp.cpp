@@ -2,7 +2,6 @@
 
 int main(int argc, char **argv) {
     Upi upi;
-    bool l = true;
     int r = 0;
     int u = 0;
     int pnum = 14;
@@ -27,12 +26,12 @@ int main(int argc, char **argv) {
     upi.setup(pnum,unum);
     upi.recordUb = recordUb;
     upi.sendCommand("allstop,");
-    while(l) {
+    while(1) {
+        if(!upi.active) break;
         if(!upi.isPlaying) {
             usleep(3000000);
             upi.playSong();
         }
-        if(!upi.active) l = false;
     }
   return 0;
 }

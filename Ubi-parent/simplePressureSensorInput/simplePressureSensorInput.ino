@@ -10,15 +10,15 @@ void loop() {
   double tmp = map(analogRead(sensorPin),0,1023,0,255)/255.0;
   for(int i=0;i<3;i++)
     tmp *= tmp;
-  out[cnt%7] = tmp*255;
+  out[cnt%10] = tmp*255;
   cnt++;
 
-  if(cnt%7 == 0) {
-    for(int i=0;i<7;i++) { 
-      sensorValue += out[i]/7;
+  if(cnt%10 == 0) {
+    for(int i=0;i<10;i++) { 
+      sensorValue += out[i]/10;
     }
     Serial.write(sensorValue);
     sensorValue = 0;
   }
-  delay(5);
+  delay(4);
 }

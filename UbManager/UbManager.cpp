@@ -62,11 +62,11 @@ void UbManager::addNote(Note note) {//ノートをユビに追加
 
 void UbManager::sendNotes() {//複数ノートをユビに送信
     if(destUbID == -1) {printf("**NO UB!**\n"); return;}
-
     ubs[destUbID].notes.sort();
     int size = 3+2*ubs[destUbID].notes.size();
     int *data = (int *)calloc(size, sizeof(int));
     int *dp = data;
+    int preTS = -40;
     *dp++ = SET_NOTE;
     *dp++ = ubs[destUbID].loop;
     *dp++ = ubs[destUbID].repeat;
@@ -74,10 +74,20 @@ void UbManager::sendNotes() {//複数ノートをユビに送信
     while(it != ubs[destUbID].notes.end()) {
         Note note = (Note)*it;
         *dp++ = note.timeStamp;
-        *dp++ = note.intensity;
+        *dp++ = std::min(note.intensity, getMaxIntensity(note.timeStamp, preTS));
+        preTS = note.timeStamp;
         ++it;
     }
     sendData(data, size*sizeof(int), destUbID);
+}
+
+int UbManager::getMaxIntensity(int ts, int prets) {
+    int vTable[11] = {0,8,9,10,11,12,14,16,22,30,40};
+    int interval = ts-prets;
+    for(int i=0;i<11;i++) {
+        if(interval < vTable[i]) return i-1;
+    }
+    return 10;
 }
 
 void UbManager::sendNotes(int from, int to) {//特定時間分のノートをユビに送信
@@ -106,12 +116,10 @@ void UbManager::sendNotes(int from, int to) {//特定時間分のノートをユ
 			if(from <= note.timeStamp && note.timeStamp < to) {
 			    *dp++ = note.timeStamp - from;
 				*dp++ = note.intensity;
-				printf("add note %d %d\n", note.timeStamp - from, note.intensity);
 			}
 			++it;
 		}
 		sendData(data, size*sizeof(int), destUbID);
-		printf("send %d data, loop:%d\n", num, to - from);
 	}
 }
 
@@ -284,8 +292,8 @@ void *UbManager::threadFunction(void *data) {
         CallbackType type;
         socklen_t addrlen;
         addrlen = sizeof(senderinfo);
-        
-        if(ubm->looptime != 0 && ubm->getTimestamp()/ubm->looptime == ubm->loopCount) {
+        int ts = ubm->getTimestamp();
+        if(ubm->looptime != 0 && ts >= 0 && ts/ubm->looptime == ubm->loopCount) {
             ubm->callback(UB_TIMER, NULL);
             ubm->loopCount++;
         }

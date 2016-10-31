@@ -14,7 +14,7 @@ public:
     pthread_t thread;
     bool repeat =false;
     bool isPlaying = false;
-    int isRecording = -1;
+    int isRecording = 0;
     int active = 0;
     char input[256];
     FILE *rhythm[PATTERN_MAX][UB_MAX];
@@ -82,6 +82,26 @@ public:
 				ubm.setDestUbID(i);
                 ubm.sendEmptyLoop();
 				ubm.setDestUbID(-1);
+                nextPattern[i] = 0;
+            }
+        }
+        sendCommand("sync,");
+        isPlaying = true;
+    }
+    
+    void playSongFrom(int pn) {
+        if(isPlaying) return;
+        rhythmOpen();
+        for(int i=0;i<umax;i++) {
+            if(i != recordUb) {
+                nextPattern[i] = pn;
+                sendCommand(nextPattern[i]++, i);
+            }else {
+                sendCommand("reset,",i);
+                sendCommand("addloop,128,1,", i);
+                ubm.setDestUbID(i);
+                ubm.sendEmptyLoop();
+                ubm.setDestUbID(-1);
                 nextPattern[i] = 0;
             }
         }
@@ -173,6 +193,7 @@ public:
                 }
                 else if(ubID == recordUb) {
 				  //ネクストパターンを次のデータ送信可能フラグとして使用
+                    printf("play!\n");
 				  nextPattern[recordUb] = 1;
                 }
                 else {
@@ -183,6 +204,10 @@ public:
             case UB_STOPPED://ユビストップ時
                 if(ubID >= umax) break;
                 printf("ub%d stopped!\n", ubID);
+                if(nextPattern[ubID] != pmax) {
+                    sendCommand("allstop,");
+                    playSongFrom(nextPattern[ubID]);
+                }
                 for(int r=0;r<pmax;r++)
                     if(rhythm[r][ubID]) fclose(rhythm[r][ubID]);
                 nextPattern[ubID] = 0;
@@ -203,15 +228,16 @@ public:
                     printf("force stop\n");
                     sendCommand("allstop,");
                 }
-                
-                if(recordUb < 0) break;
+                printf("timer:%d\n",ubm.getTimestamp());
+                if(recordUb < 0 || isPlaying == false) break;
+                usleep(200000);
                 if(ubm.loopCount%2 == 1) {
 				    //再生バッファが空になってから次のデータを
 				    //送らないとリジェクトされる可能性あり
 				    if(!nextPattern[recordUb]) printf("Data will be rejected!\n");
 					ubm.setDestUbID(recordUb);
 					ubm.sendNotes(0, 128*13);
-					printf("send former! %d\n", ubm.getNoteSize(recordUb));
+					//printf("send former! %d\n", ubm.getNoteSize(recordUb));
 					ubm.setDestUbID(-1);
 					nextPattern[recordUb] = 0;
                 }
@@ -219,20 +245,11 @@ public:
 				    if(!nextPattern[recordUb]) printf("Data will be rejected!\n");
                     ubm.setDestUbID(recordUb);
                     ubm.sendNotes(128*13, 256*13);
-                    printf("send latter %d\n", ubm.getNoteSize(recordUb));
+                    //printf("send latter %d\n", ubm.getNoteSize(recordUb));
                     ubm.setDestUbID(-1);
 					nextPattern[recordUb] = 0;
                 }
-                /*else if(isRecording == 0) {
-                    ubm.setDestUbID(recordUb);
-                    usleep(100000);
-                    ubm.addLoop(256*13,0);
-                    ubm.sendNotes();
-                    printf("send all %d\n", ubm.getNoteSize(recordUb));
-                    ubm.setDestUbID(-1);
-                    isRecording = -1;
-					}*/
-				if(isRecording>0) isRecording--;
+                if(isRecording>0) isRecording--;
                 break;
         }
     }
@@ -303,19 +320,17 @@ public:
     void parse(char *dl[]) {
         if(strcmp(dl[0], "add") == 0) {
             int arg[2] = {atoi(dl[1]), atoi(dl[2])};
-            ubm.addNote(arg[0]*13,arg[1]/20);
+            ubm.addNote(arg[0]*13,arg[1]/25);
         }
         else if(strcmp(dl[0], "record") == 0) {
-            if(isRecording<0) {
+            if(isRecording==0) {
                 isRecording = 2;
                 ubm.resetNotes();
-                ubm.addLoop(128*13, 1);
             }
             int a = (ubm.getTimestamp()-150)%(256*13);
-            int b = (16*13)*(a/(16*13));//16分音符クオンタイズ
+            int b = (8*13)*(a/(8*13));//16分音符クオンタイズ
             if(lastNote != b) {
                 ubm.addNote(b,atoi(dl[1])/25);
-                printf("note:%d, %d\n",b,atoi(dl[1])/25);
                 lastNote = b;
             }
         }

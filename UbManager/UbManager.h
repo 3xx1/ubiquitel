@@ -83,5 +83,8 @@ private:
     void sendData(void *d, int size, int ubID);
     void broadcast(void *d, int size);
     void confirm(CallbackType cbt, int ubID);
+    
+    //その他
+    int getMaxIntensity(int ts, int prets);
 };
 #endif /* UbManager_h */
