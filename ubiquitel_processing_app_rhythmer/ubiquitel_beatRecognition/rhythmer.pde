@@ -19,9 +19,13 @@ void rhythm() {
   }
 }
 
-void highlight() {
+int highlight() {
   fill(239, 69, 74);
   int pos = (frameCount/20)%16;
   rect(padding+pos*innerWidth/16, height/2+innerWidth/16, innerWidth/16, innerWidth/128);
-  if (rhythm[pos] > 0) rect(padding+pos*innerWidth/16, height/2-innerWidth/32, innerWidth/16, innerWidth/16);
+  if (rhythm[pos] > 0) {
+    rect(padding+pos*innerWidth/16, height/2-innerWidth/32, innerWidth/16, innerWidth/16);
+    if (frameCount%20<2 && rhythm[pos]>0) return rhythm[pos];
+  }
+  return 0;
 }

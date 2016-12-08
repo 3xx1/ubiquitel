@@ -50,7 +50,8 @@ void draw() {
   /* ******************************************************************* */
   /* take the second line out, switch first line to arduino analog input */
   // if (myPort.available()>0) signal[0] = myPort.read();
-  signal[0] = pulseInput;
+  // signal[0] = pulseInput;
+  signal[0] = highlight() * 100;
   pulseInput = pulseReductionSimulator(pulseInput, .8);
   /* ******************************************************************* */
 
