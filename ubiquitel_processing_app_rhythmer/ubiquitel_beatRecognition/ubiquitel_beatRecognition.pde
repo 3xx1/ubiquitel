@@ -36,11 +36,15 @@ void setup() {
   recordingEventFlag = false;
   playbackEventFlag = false;
   println(systemMessage);
-  myPort = new Serial(this, "/dev/cu.usbmodem1421", 9600);
+  innerWidth = width - 2*padding;
+  // myPort = new Serial(this, "/dev/cu.usbmodem1421", 9600);
 }
 
 void draw() {
   background(255);
+  grid();
+  rhythm();
+  highlight();
   clock++;
   playback_clock++;
   /* ******************************************************************* */
@@ -50,7 +54,7 @@ void draw() {
   pulseInput = pulseReductionSimulator(pulseInput, .8);
   /* ******************************************************************* */
 
-  drawPeripherals();
+  // drawPeripherals();
   if(playbackEventFlag)  playbackRecordings(playback_clock, playback_index);
   if(!playbackEventFlag) intensityRecognitionEvent(signal, threshold_on, threshold_off);
   pushArrayData(signal, arraySize);
