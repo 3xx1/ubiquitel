@@ -57,6 +57,20 @@ public:
         }
     }
     
+    void rhythmOpen(const char *path) {
+        for(int r=0;r<pmax;r++) {
+            for(int u=0;u<umax;u++) {
+                std::stringstream s;
+                std::string filename;
+                s << path << r << "/rhythm" << r << u << ".txt";
+                filename = s.str();
+                if ((rhythm[r][u] = fopen(filename.c_str(), "r")) == NULL) {
+                    printf("FILE OPEN ERROR!!\n");
+                }
+            }
+        }
+    }
+    
     void rhythmClose() {
         for(int r=0;r<pmax;r++) {
             for(int u=0;u<umax;u++) {
