@@ -83,9 +83,9 @@ public:
         }
     }
     
-    void playSong() {
+    void playSong(const char *path) {
         if(isPlaying) return;
-        rhythmOpen();
+        rhythmOpen(path);
         for(int i=0;i<umax;i++) {
             if(i != recordUb) {
                 nextPattern[i] = 0;
@@ -96,6 +96,26 @@ public:
 				ubm.setDestUbID(i);
                 ubm.sendEmptyLoop();
 				ubm.setDestUbID(-1);
+                nextPattern[i] = 0;
+            }
+        }
+        sendCommand("sync,");
+        isPlaying = true;
+    }
+    
+    void playSong() {
+        if(isPlaying) return;
+        rhythmOpen();
+        for(int i=0;i<umax;i++) {
+            if(i != recordUb) {
+                nextPattern[i] = 0;
+                sendCommand(nextPattern[i]++, i);
+            }else {
+                sendCommand("reset,",i);
+                sendCommand("addloop,128,1,", i);
+                ubm.setDestUbID(i);
+                ubm.sendEmptyLoop();
+                ubm.setDestUbID(-1);
                 nextPattern[i] = 0;
             }
         }
@@ -359,7 +379,7 @@ public:
             ubm.resetNotes();
         }
         else if(strcmp(dl[0], "play") == 0) {
-            playSong();
+            playSong(dl[1]);
         }
         else if(strcmp(dl[0], "stop") == 0) {
             ubm.stop();
@@ -375,6 +395,9 @@ public:
         }
         else if(strcmp(dl[0], "search") == 0) {
             ubm.search();
+        }
+        else if(strcmp(dl[0], "recordUbID") == 0) {
+            recordUb = atoi(dl[1]);
         }
         else {
             printf("%s", input);

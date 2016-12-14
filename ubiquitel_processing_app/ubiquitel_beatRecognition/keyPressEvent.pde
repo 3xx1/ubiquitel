@@ -30,7 +30,7 @@ void keyPressed() {
     } else {
       playbackEventFlag = true;
       playbackInit();
-      println("play,");
+      println("play,Rhythm,");
     }
   }
   
