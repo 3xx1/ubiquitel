@@ -5,7 +5,7 @@ int main(int argc, char **argv) {
     int r = 0;
     int u = 0;
     int pnum = 1;
-    int unum = 5;
+    int unum = 1;
     int recordUb = -1;
     char input;
     

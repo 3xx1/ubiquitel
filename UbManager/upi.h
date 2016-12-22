@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,12 +23,14 @@ public:
     int pmax, umax;
     int lastNote = -1;
     int recordUb = -1;
+    float coef = 15975.0/(3.0*256.0);
+
     Upi() {
         //コールバック関数の登録
         ubm.setCallback(this, &Upi::ubCallback);
         //子機たちのIPアドレス取得
         ubm.search();
-        ubm.setTimer(128*13);
+        ubm.setTimer(128*coef);
     }
     ~Upi(){
         rhythmClose();
@@ -93,9 +96,9 @@ public:
             }else {
                 sendCommand("reset,",i);
                 sendCommand("addloop,128,1,", i);
-				ubm.setDestUbID(i);
+		ubm.setDestUbID(i);
                 ubm.sendEmptyLoop();
-				ubm.setDestUbID(-1);
+		ubm.setDestUbID(-1);
                 nextPattern[i] = 0;
             }
         }
@@ -226,22 +229,40 @@ public:
                     //printf("sent new rhythm,%d-%d!\n",nextPattern[ubID]-1,ubID);
                 }
                 else if(ubID == recordUb) {
-				  //ネクストパターンを次のデータ送信可能フラグとして使用
-                    printf("play!\n");
-				  nextPattern[recordUb] = 1;
+		  //ネクストパターンを次のデータ送信可能フラグとして使用
+		  printf("play!\n");
+		  //nextPattern[recordUb] = 1;
+		  if(nextPattern[recordUb] == 1) {
+		    //if(!nextPattern[recordUb]) printf("Data will be rejected!\n");
+		    ubm.setDestUbID(recordUb);
+		    ubm.sendNotes(0, 128*coef);
+		    printf("send former! %d\n", ubm.getNoteSize(recordUb));
+		    ubm.setDestUbID(-1);
+		    nextPattern[recordUb] = 0;
+		  }
+		  else if(nextPattern[recordUb] == 0) {
+		    //if(!nextPattern[recordUb]) printf("Data will be rejected!\n");
+		    ubm.setDestUbID(recordUb);
+		    ubm.sendNotes(128*coef, 256*coef);
+		    printf("send latter %d\n", ubm.getNoteSize(recordUb));
+		    ubm.setDestUbID(-1);
+		    nextPattern[recordUb] = 1;
+		  }
                 }
                 else {
-                    printf("stopping rhythm!\n");
+		  printf("ub%d stopping rhythm!\n", ubID);
                 }
                 break;
                 
             case UB_STOPPED://ユビストップ時
                 if(ubID >= umax) break;
-                printf("ub%d stopped!\n", ubID);
-                if(nextPattern[ubID] != pmax) {
-                    sendCommand("allstop,");
-                    playSongFrom(nextPattern[ubID]);
+                if((ubID != recordUb && nextPattern[ubID] != pmax) ||
+		   ubID == recordUb) {
+		  sendCommand("allstop,");
+		  //playSongFrom(nextPattern[ubID]);
+		  std::cout << "Communication err." << std::endl;
                 }
+		printf("ub%d stopped!\n", ubID);
                 for(int r=0;r<pmax;r++)
                     if(rhythm[r][ubID]) fclose(rhythm[r][ubID]);
                 nextPattern[ubID] = 0;
@@ -258,46 +279,46 @@ public:
                 break;
                 
             case UB_TIMER:
-                if(ubm.getTimestamp() > 85000) {
-                    printf("force stop\n");
-                    sendCommand("allstop,");
-                }
-                printf("timer:%d\n",ubm.getTimestamp());
-                if(recordUb < 0 || isPlaying == false) break;
-                usleep(200000);
-                if(ubm.loopCount%2 == 1) {
-				    //再生バッファが空になってから次のデータを
-				    //送らないとリジェクトされる可能性あり
-				    if(!nextPattern[recordUb]) printf("Data will be rejected!\n");
-					ubm.setDestUbID(recordUb);
-					ubm.sendNotes(0, 128*13);
-					//printf("send former! %d\n", ubm.getNoteSize(recordUb));
-					ubm.setDestUbID(-1);
-					nextPattern[recordUb] = 0;
-                }
-                else if(ubm.loopCount%2 == 0) {
-				    if(!nextPattern[recordUb]) printf("Data will be rejected!\n");
-                    ubm.setDestUbID(recordUb);
-                    ubm.sendNotes(128*13, 256*13);
-                    //printf("send latter %d\n", ubm.getNoteSize(recordUb));
-                    ubm.setDestUbID(-1);
-					nextPattern[recordUb] = 0;
-                }
-                if(isRecording>0) isRecording--;
-                break;
+	      if(ubm.getTimestamp() > 180000) {
+		//printf("force stop\n");
+		//sendCommand("allstop,");
+	      }
+	      //printf("timer:%d\n",ubm.getTimestamp());
+	      if(recordUb < 0 || isPlaying == false) break;
+	      /*usleep(200000);
+	      if(ubm.loopCount%2 == 1) {
+		//再生バッファが空になってから次のデータを
+		//送らないとリジェクトされる可能性あり
+		if(!nextPattern[recordUb]) printf("Data will be rejected!\n");
+		ubm.setDestUbID(recordUb);
+		ubm.sendNotes(0, 128*coef);
+		printf("send former! %d\n", ubm.getNoteSize(recordUb));
+		ubm.setDestUbID(-1);
+		nextPattern[recordUb] = 0;
+	      }
+	      else if(ubm.loopCount%2 == 0) {
+		if(!nextPattern[recordUb]) printf("Data will be rejected!\n");
+		ubm.setDestUbID(recordUb);
+		ubm.sendNotes(128*coef, 256*coef);
+		printf("send latter %d\n", ubm.getNoteSize(recordUb));
+		ubm.setDestUbID(-1);
+		nextPattern[recordUb] = 0;
+		}*/
+	      //if(isRecording>0) isRecording--;
+	      break;
         }
     }
     
     int split( char *str, const char *delim, char *outlist[] ) {
-        char    *tk;
-        int     cnt = 0;
-        
-        tk = strtok( str, delim );
-        while( tk != NULL && cnt < MAX ) {
-            outlist[cnt++] = tk;
-            tk = strtok( NULL, delim );
-        }
-        return cnt;
+      char    *tk;
+      int     cnt = 0;
+      
+      tk = strtok( str, delim );
+      while( tk != NULL && cnt < MAX ) {
+	outlist[cnt++] = tk;
+	tk = strtok( NULL, delim );
+      }
+      return cnt;
     }
     
     void start() {
@@ -329,7 +350,7 @@ public:
         pclose(pwd);
         
         char *fn = strstr(buf, "UbManager");
-        strcpy(fn, "ubiquitel_processing_app/ubiquitel_beatRecognition/application.macosx/ubiquitel_beatRecognition.app/Contents/MacOS/ubiquitel_beatRecognition");
+        strcpy(fn, "ubiquitel_processing_app_Rhythmer/ubiquitel_beatRecognition/application.macosx/ubiquitel_beatRecognition.app/Contents/MacOS/ubiquitel_beatRecognition");
         
         //processingアプリ起動
         FILE *fp = popen(buf, "r");
@@ -354,25 +375,27 @@ public:
     void parse(char *dl[]) {
         if(strcmp(dl[0], "add") == 0) {
             int arg[2] = {atoi(dl[1]), atoi(dl[2])};
-            ubm.addNote(arg[0]*13,arg[1]/25);
+            ubm.addNote(arg[0]*coef,arg[1]/25);
         }
         else if(strcmp(dl[0], "record") == 0) {
             if(isRecording==0) {
-                isRecording = 2;
-                ubm.resetNotes();
+                isRecording = 3;
+                //ubm.resetNotes();
             }
-            int a = (ubm.getTimestamp()-150)%(256*13);
-            int b = (8*13)*(a/(8*13));//16分音符クオンタイズ
-            if(lastNote != b) {
-                ubm.addNote(b,atoi(dl[1])/25);
-                lastNote = b;
-            }
+            int a = (ubm.getTimestamp()-150)%((int)(256*coef));
+	    ubm.addNote(a,atoi(dl[1])/25);
+            //int b = (8*13)*(a/(8*13));//16分音符クオンタイズ
+            /*if(lastNote != b) {
+	      ubm.addNote(b,atoi(dl[1])/25);
+	      lastNote = b;
+	      }*/
+	    printf("record, %d\n",a);
         }
         else if(strcmp(dl[0], "sendNotes") == 0) {
             ubm.sendNotes();
         }
         else if(strcmp(dl[0], "addloop") == 0) {
-            ubm.addLoop(atoi(dl[1])*13, atoi(dl[2]));
+            ubm.addLoop(atoi(dl[1])*coef, atoi(dl[2]));
 
         }
         else if(strcmp(dl[0], "reset") == 0) {
@@ -398,6 +421,7 @@ public:
         }
         else if(strcmp(dl[0], "recordUbID") == 0) {
             recordUb = atoi(dl[1]);
+	    printf("rID:%d\n",recordUb);
         }
         else {
             printf("%s", input);

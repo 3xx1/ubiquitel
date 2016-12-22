@@ -25,8 +25,8 @@ typedef struct Tap {
 }Tap;
 
 //Comm
-const char* ssid = "ESPAP";
-const char* password = "ubiquitel";
+const char* ssid = "MusashiのiPhone";
+const char* password = "47440906";
 WiFiUDP udp;
 IPAddress ubmip;
 long packet[1000];

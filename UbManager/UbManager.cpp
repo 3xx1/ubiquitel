@@ -244,7 +244,7 @@ void UbManager::broadcast(void *d, int size) {
     int sock;
     struct sockaddr_in addr;
     int yes = 1;
-    
+
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     addr.sin_family = AF_INET;
     addr.sin_port = htons(6341);
@@ -304,7 +304,7 @@ void *UbManager::threadFunction(void *data) {
             usleep(1000);
             continue;
         }
-        
+
         if(type==UB_FOUND) {//IPアドレス
             Ub ub;
             ub.loop = 0;

@@ -1,6 +1,7 @@
 void notifyUb() {
   ubmip = udp.remoteIP();
   sendData(UB_FOUND);
+  Serial.println(ubmip);
   if(dockState == LOW)
     sendData(UB_DOCKED);
 }
