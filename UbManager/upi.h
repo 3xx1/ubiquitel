@@ -6,7 +6,7 @@
 #include <sstream>
 #include "UbManager.h"
 #define MAX 4
-#define PATTERN_MAX 15
+#define PATTERN_MAX 30
 #define UB_MAX 5
 
 class Upi {
@@ -65,7 +65,7 @@ public:
             for(int u=0;u<umax;u++) {
                 std::stringstream s;
                 std::string filename;
-                s << path << r << "/rhythm" << r << u << ".txt";
+                s << path << "/rhythm" << r << "/rhythm" << r << u << ".txt";
                 filename = s.str();
                 if ((rhythm[r][u] = fopen(filename.c_str(), "r")) == NULL) {
                     printf("FILE OPEN ERROR!!\n");
@@ -146,6 +146,26 @@ public:
         isPlaying = true;
     }
     
+    void playSongFrom(const char *path, int pn) {
+        if(isPlaying) return;
+        rhythmOpen(path);
+        for(int i=0;i<umax;i++) {
+            if(i != recordUb) {
+                nextPattern[i] = pn;
+                sendCommand(nextPattern[i]++, i);
+            }else {
+                sendCommand("reset,",i);
+                sendCommand("addloop,128,1,", i);
+                ubm.setDestUbID(i);
+                ubm.sendEmptyLoop();
+                ubm.setDestUbID(-1);
+                nextPattern[i] = 0;
+            }
+        }
+        sendCommand("sync,");
+        isPlaying = true;
+    }
+
     void playRhythm(int r) {
         if(isPlaying) return;
         //sendCommand("allstop,");
@@ -208,7 +228,7 @@ public:
                 break;
                 
             case UB_PLAYED://リズムデータ要求
-                //printf("ub%d required new rhythm!\n", ubID);
+                printf("ub%d required new rhythm!\n", ubID);
                 if(nextPattern[ubID]<pmax && ubID < umax && ubID != recordUb) {
                     sendCommand(nextPattern[ubID]++, ubID);
                     //printf("sent new rhythm,%d-%d!\n",nextPattern[ubID]-1,ubID);
@@ -229,7 +249,7 @@ public:
                     //printf("sent new rhythm,%d-%d!\n",nextPattern[ubID]-1,ubID);
                 }
                 else if(ubID == recordUb) {
-		  //ネクストパターンを次のデータ送信可能フラグとして使用
+		  /*ネクストパターンを次のデータ送信可能フラグとして使用
 		  printf("play!\n");
 		  //nextPattern[recordUb] = 1;
 		  if(nextPattern[recordUb] == 1) {
@@ -247,7 +267,7 @@ public:
 		    printf("send latter %d\n", ubm.getNoteSize(recordUb));
 		    ubm.setDestUbID(-1);
 		    nextPattern[recordUb] = 1;
-		  }
+		    }*/
                 }
                 else {
 		  printf("ub%d stopping rhythm!\n", ubID);
@@ -279,9 +299,9 @@ public:
                 break;
                 
             case UB_TIMER:
-	      if(ubm.getTimestamp() > 180000) {
-		//printf("force stop\n");
-		//sendCommand("allstop,");
+	      if(ubm.getTimestamp() > 185000) {
+		printf("force stop\n");
+		sendCommand("allstop,");
 	      }
 	      //printf("timer:%d\n",ubm.getTimestamp());
 	      if(recordUb < 0 || isPlaying == false) break;
@@ -377,18 +397,23 @@ public:
             int arg[2] = {atoi(dl[1]), atoi(dl[2])};
             ubm.addNote(arg[0]*coef,arg[1]/25);
         }
+	else if(strcmp(dl[0],"rstart") == 0) {
+	  ubm.resetNotes();
+	  isRecording = ubm.getTimestamp();
+	}
+	else if(strcmp(dl[0],"rstop") == 0) {
+	  ubm.addLoop(ubm.getTimestamp()-isRecording, 0);
+	  ubm.sendNotes();
+	  ubm.play();
+	  std::cout << ubm.getTimestamp()-isRecording << std::endl;
+	}
         else if(strcmp(dl[0], "record") == 0) {
             if(isRecording==0) {
-                isRecording = 3;
-                //ubm.resetNotes();
+	      //isRecording = 3;
+	      //ubm.resetNotes();
             }
-            int a = (ubm.getTimestamp()-150)%((int)(256*coef));
+            int a = ubm.getTimestamp()-isRecording;
 	    ubm.addNote(a,atoi(dl[1])/25);
-            //int b = (8*13)*(a/(8*13));//16分音符クオンタイズ
-            /*if(lastNote != b) {
-	      ubm.addNote(b,atoi(dl[1])/25);
-	      lastNote = b;
-	      }*/
 	    printf("record, %d\n",a);
         }
         else if(strcmp(dl[0], "sendNotes") == 0) {
@@ -396,7 +421,6 @@ public:
         }
         else if(strcmp(dl[0], "addloop") == 0) {
             ubm.addLoop(atoi(dl[1])*coef, atoi(dl[2]));
-
         }
         else if(strcmp(dl[0], "reset") == 0) {
             ubm.resetNotes();

@@ -3,7 +3,7 @@
 
 #include "ub.h"
 #include <chrono>
-
+#include <iostream>
 // メソッドのポインタをイベントリスナとするためのテンプレートクラス
 class ListenerBase {
 public:

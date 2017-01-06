@@ -1,5 +1,4 @@
 typedef enum {
-  SYNC_UB,
   PLAY_UB,
   PAUSE_UB,
   STOP_UB,
@@ -7,7 +6,8 @@ typedef enum {
   SET_NOTE,
   RESET_NOTE,
   SEARCH_UB,
-  CONFIRM
+  CONFIRM,
+  SYNC_UB
 }DataType;
 
 typedef enum {
@@ -25,8 +25,8 @@ typedef struct Tap {
 }Tap;
 
 //Comm
-const char* ssid = "MusashiのiPhone";
-const char* password = "47440906";
+const char* ssid = "kannolab 2";
+const char* password = "yoshi3785kanno1";
 WiFiUDP udp;
 IPAddress ubmip;
 long packet[1000];

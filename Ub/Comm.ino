@@ -27,7 +27,7 @@ void parsePacket() {
           resetTaps();
         break;
         case SEARCH_UB:
-        delay(600);
+        //delay(200);
         notifyUb();
         break;
         case CONFIRM:

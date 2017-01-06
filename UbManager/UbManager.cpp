@@ -7,7 +7,7 @@ UbManager::UbManager() {
     isDocking = false;
     looptime = 0;
     loopCount = 0;
-	start = std::chrono::system_clock::now();
+    start = std::chrono::system_clock::now();
     startServer();
 }
 
@@ -17,7 +17,7 @@ void UbManager::setTimer(int lt) {
 
 int UbManager::getTimestamp() {
   std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
-  int duration = (double)sec.count()*1001-700;
+  int duration = (double)sec.count()*1000;
   return duration;
 }
 
@@ -63,6 +63,11 @@ void UbManager::addNote(Note note) {//ノートをユビに追加
 void UbManager::sendNotes() {//複数ノートをユビに送信
     if(destUbID == -1) {printf("**NO UB!**\n"); return;}
     ubs[destUbID].notes.sort();
+    if(ubs[destUbID].notes.size() == 0) {
+      //std::cout << "empty" << std::endl;
+      sendEmptyLoop();
+      return;
+    }
     int size = 3+2*ubs[destUbID].notes.size();
     int *data = (int *)calloc(size, sizeof(int));
     int *dp = data;
@@ -131,7 +136,7 @@ void UbManager::sendEmptyLoop() {//空ループをユビに送信
     data[1] = ubs[destUbID].loop;
     data[2] = ubs[destUbID].repeat;
     data[3] = 0;
-	data[4] = 0;
+    data[4] = 0;
     sendData(data, 5*sizeof(int), destUbID);
 }
 
@@ -231,7 +236,6 @@ void UbManager::stopServer() {
 void UbManager::sync() {//ユビクロックの同期
     int data = SYNC_UB;
     broadcast(&data, sizeof(int));
-	start = std::chrono::system_clock::now();
     loopCount = 0;
 }
 
@@ -247,7 +251,7 @@ void UbManager::broadcast(void *d, int size) {
 
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(6341);
+    addr.sin_port = htons(6340);
     addr.sin_addr.s_addr = inet_addr("255.255.255.255");
     
     setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&yes, sizeof(yes));
@@ -261,7 +265,7 @@ void UbManager::sendData(void *d, int size, int ubID) {
     
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(6341);
+    addr.sin_port = htons(6340);
     addr.sin_addr.s_addr = inet_addr(ubs[ubID].ip);
 
     sendto(sock, d, size, 0, (struct sockaddr *)&addr, sizeof(addr));
@@ -304,7 +308,6 @@ void *UbManager::threadFunction(void *data) {
             usleep(1000);
             continue;
         }
-
         if(type==UB_FOUND) {//IPアドレス
             Ub ub;
             ub.loop = 0;
@@ -314,7 +317,7 @@ void *UbManager::threadFunction(void *data) {
             for (int i=0; i<ubm->ubs.size(); i++) {
                 //追加してたらとりあえず返事だけする
                 if (strcmp(ubm->ubs[i].ip,ub.ip)==0) {
-                    onList= true;
+                    onList = true;
                     ubm->confirm(UB_FOUND, i);
                     ubm->callback(UB_FOUND, i);
                 }
@@ -322,7 +325,7 @@ void *UbManager::threadFunction(void *data) {
             //リストにない時は追加
             if(!onList) {
                 ubm->ubs.push_back(ub);
-                ubm->confirm(UB_FOUND, ubm->ubs.size()-1);
+		ubm->confirm(UB_FOUND, ubm->ubs.size()-1);
                 ubm->callback(UB_FOUND, ubm->ubs.size()-1);
             }
         }
@@ -383,6 +386,10 @@ void *UbManager::threadFunction(void *data) {
                 }
             }
         }
+	else if(type==SYNC_UB) {
+	  std::cout<< "sync!" << std::endl;
+	  ubm->start = std::chrono::system_clock::now();
+	}
     }
     close(sock);
     pthread_exit(NULL);

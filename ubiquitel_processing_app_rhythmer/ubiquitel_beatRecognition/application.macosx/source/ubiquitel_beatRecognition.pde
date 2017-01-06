@@ -42,9 +42,9 @@ void setup() {
 
 void draw() {
   background(255);
-  grid();
-  rhythm();
-  if(playbackEventFlag) highlight();
+  //grid();
+  //rhythm();
+  //if(playbackEventFlag) highlight();
   clock++;
   playback_clock++;
   /* ******************************************************************* */

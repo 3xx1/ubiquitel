@@ -1,6 +1,0 @@
-reset,
-add,0,180,
-add,48,180,
-add,80,180,
-addloop,128,3,
-sendNotes,

@@ -26,7 +26,6 @@ int main(int argc, char **argv) {
     upi.setup(pnum,unum);
     upi.recordUb = recordUb;
     upi.sendCommand("allstop,");
-    while(1) {
-    }
+    while(upi.active);
     return 0;
 }

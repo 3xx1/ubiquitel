@@ -60,9 +60,9 @@ public void setup() {
 
 public void draw() {
   background(255);
-  grid();
-  rhythm();
-  if(playbackEventFlag) highlight();
+  //grid();
+  //rhythm();
+  //if(playbackEventFlag) highlight();
   clock++;
   playback_clock++;
   /* ******************************************************************* */
@@ -174,17 +174,15 @@ public void keyPressed() {
   if (key == 'p') {
     if(playbackEventFlag) {
       playbackEventFlag = false;
-      println("allstop,");
+      println("rstop,");
     } else {
-      println("play,Demo" + rID%4);
+      println("rstart,");
       playbackEventFlag = true;
       playbackInit();
-      delay(670);//to sync with Ub
     }
   }
   if (key == 'n') {
-    nextRhythm();
-    println("recordUbID," + (3-rID%4));
+    println("stop,");
   }
   if (key == 'x') {
     if(repeatEventFlag) {
@@ -192,6 +190,12 @@ public void keyPressed() {
     } else {
       repeatEventFlag = true;
     }
+  }
+  if (key == 'a') {
+    println("sync,");
+  }
+  if (key == 'z') {
+    println("allstop,");
   }
 }
 public float timestamp() {

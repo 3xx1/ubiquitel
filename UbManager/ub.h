@@ -12,7 +12,6 @@
 #include <vector>
 
 typedef enum {
-    SYNC_UB,
     PLAY_UB,
     PAUSE_UB,
     STOP_UB,
@@ -20,7 +19,8 @@ typedef enum {
     SET_NOTE,
     RESET_NOTE,
     SEARCH_UB,
-    CONFIRM
+    CONFIRM,
+    SYNC_UB
 }DataType;
 
 typedef enum {

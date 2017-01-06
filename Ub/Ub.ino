@@ -32,7 +32,7 @@ void setup() {
   digitalWrite(LED, LOW);
   
   ticker.attach(0.005, timer);
-  udp.begin(6341);
+  udp.begin(6340);
   for(int i=0;i<2;i++) {
     numTaps[i] = 0;
     looptime[i] = 0;

@@ -17,17 +17,15 @@ void keyPressed() {
   if (key == 'p') {
     if(playbackEventFlag) {
       playbackEventFlag = false;
-      println("allstop,");
+      println("rstop,");
     } else {
-      println("play,Demo" + rID%4);
+      println("rstart,");
       playbackEventFlag = true;
       playbackInit();
-      delay(670);//to sync with Ub
     }
   }
   if (key == 'n') {
-    nextRhythm();
-    println("recordUbID," + (3-rID%4));
+    println("stop,");
   }
   if (key == 'x') {
     if(repeatEventFlag) {
@@ -35,5 +33,11 @@ void keyPressed() {
     } else {
       repeatEventFlag = true;
     }
+  }
+  if (key == 'a') {
+    println("sync,");
+  }
+  if (key == 'z') {
+    println("allstop,");
   }
 }
