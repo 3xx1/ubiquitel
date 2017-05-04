@@ -26,7 +26,7 @@ UbManager::~UbManager() {
 }
 
 void UbManager::addLoop(int loop, int repeat) {//ループ周期の送信
-    if(destUbID == -1) return;
+    if(destUbID == -1 || destUbID >= getUbSize()) return;
     int data[3];
     ubs[destUbID].loop = loop;
     ubs[destUbID].repeat = repeat;
@@ -39,11 +39,10 @@ void UbManager::addNote(int ts, int intensity) {//ノートをユビに追加
     note.timeStamp = ts;
     note.intensity = intensity;
     addNote(note);
-    //printf("add note %d, %d\n",ts, intensity);
 }
 
 void UbManager::addNote(Note note) {//ノートをユビに追加
-    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    if(destUbID == -1 || destUbID >= getUbSize()) {printf("**NO UB!**\n"); return;}
     bool identical = false;
     auto it = ubs[destUbID].notes.begin();
     while(it != ubs[destUbID].notes.end()) {
@@ -57,11 +56,21 @@ void UbManager::addNote(Note note) {//ノートをユビに追加
     if(!identical) {
         ubs[destUbID].notes.push_back(note);
         ubs[destUbID].notes.sort();
+        //printf("add note %d, %d\n",note.timeStamp, note.intensity);
+    }
+}
+
+void UbManager::addNotes(std::list<Note> notes) {
+    auto it = notes.begin();
+    while(it != notes.end()) {
+        Note note = (Note)*it;
+        addNote(note);
+        ++it;
     }
 }
 
 void UbManager::sendNotes() {//複数ノートをユビに送信
-    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    if(destUbID == -1 || destUbID >= getUbSize()) {printf("**NO UB!**\n"); return;}
     ubs[destUbID].notes.sort();
     if(ubs[destUbID].notes.size() == 0) {
       //std::cout << "empty" << std::endl;
@@ -96,7 +105,7 @@ int UbManager::getMaxIntensity(int ts, int prets) {
 }
 
 void UbManager::sendNotes(int from, int to) {//特定時間分のノートをユビに送信
-    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    if(destUbID == -1 || destUbID >= getUbSize()) {printf("**NO UB!**\n"); return;}
     
     ubs[destUbID].notes.sort();
     int num = 0;
@@ -129,7 +138,7 @@ void UbManager::sendNotes(int from, int to) {//特定時間分のノートをユ
 }
 
 void UbManager::sendEmptyLoop() {//空ループをユビに送信
-    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    if(destUbID == -1 || destUbID >= getUbSize()) {printf("**NO UB!**\n"); return;}
 
     int data[5];
     data[0] = SET_NOTE;
@@ -141,7 +150,7 @@ void UbManager::sendEmptyLoop() {//空ループをユビに送信
 }
 
 void UbManager::resetNotes() {//全てのノートをリセット
-    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    if(destUbID == -1 || destUbID >= getUbSize()) {printf("**NO UB!**\n"); return;}
     ubs[destUbID].notes.clear();
     int data = RESET_NOTE;
     sendData(&data, sizeof(data), destUbID);
@@ -158,7 +167,7 @@ void UbManager::resetAll() {//全てのユビのノートをリセット
 }
 
 void UbManager::play() {
-    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    if(destUbID == -1 || destUbID >= getUbSize()) {printf("**NO UB!**\n"); return;}
     int data[2] = {PLAY_UB, 0};
     sendData(data, sizeof(data), destUbID);
     printf("play!\n");
@@ -170,19 +179,19 @@ void UbManager::playAll() {
 }
 
 void UbManager::playAt(int time) {
-    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    if(destUbID == -1 || destUbID >= getUbSize()) {printf("**NO UB!**\n"); return;}
     int data[2] = {PLAY_UB, time};
     sendData(data, sizeof(data), destUbID);
 }
 
 void UbManager::pause() {
-    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    if(destUbID == -1 || destUbID >= getUbSize()) {printf("**NO UB!**\n"); return;}
     int data = PAUSE_UB;
     sendData(&data, sizeof(data), destUbID);
 }
 
 void UbManager::stop() {
-    if(destUbID == -1) {printf("**NO UB!**\n"); return;}
+    if(destUbID == -1 || destUbID >= getUbSize()) {printf("**NO UB!**\n"); return;}
     int data = STOP_UB;
     sendData(&data, sizeof(data), destUbID);
 }
@@ -297,7 +306,7 @@ void *UbManager::threadFunction(void *data) {
         socklen_t addrlen;
         addrlen = sizeof(senderinfo);
         int ts = ubm->getTimestamp();
-        if(ubm->looptime != 0 && ts >= 0 && ts/ubm->looptime == ubm->loopCount) {
+        if(ubm->looptime != 0 && ts >= 0 && ts/ubm->looptime >= ubm->loopCount) {
             ubm->callback(UB_TIMER, NULL);
             ubm->loopCount++;
         }
@@ -325,7 +334,7 @@ void *UbManager::threadFunction(void *data) {
             //リストにない時は追加
             if(!onList) {
                 ubm->ubs.push_back(ub);
-		ubm->confirm(UB_FOUND, ubm->ubs.size()-1);
+                ubm->confirm(UB_FOUND, ubm->ubs.size()-1);
                 ubm->callback(UB_FOUND, ubm->ubs.size()-1);
             }
         }
@@ -386,10 +395,10 @@ void *UbManager::threadFunction(void *data) {
                 }
             }
         }
-	else if(type==SYNC_UB) {
-	  std::cout<< "sync!" << std::endl;
-	  ubm->start = std::chrono::system_clock::now();
-	}
+        else if(type==SYNC_UB) {
+            std::cout<< "sync!" << std::endl;
+            ubm->start = std::chrono::system_clock::now();
+        }
     }
     close(sock);
     pthread_exit(NULL);

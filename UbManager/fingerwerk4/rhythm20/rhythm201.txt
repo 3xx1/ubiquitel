@@ -1,0 +1,8 @@
+reset,
+add,0,60,
+add,12,100,
+add,24,100,
+add,36,160,
+add,48,160,
+addloop,96,1,
+sendNotes,

@@ -36,7 +36,8 @@ public:
 	int getTimestamp();//同期後の累積時間
     void addLoop(int loop, int repeat);//ループ周期、ループ回数をユビに送信
     void addNote(int ts, int intensity);//覚えさせたいノートを追加
-    void addNote(Note note);//覚えさせたいノートを追加
+    void addNote(Note note);//覚えさせたいノートを追加]
+    void addNotes(std::list<Note> notes);
     void sendNotes();//覚えさせたノートをユビに送信
     void sendNotes(int from, int to);//覚えさせたノートのうち、特定の時間領域をユビに送信
     void sendEmptyLoop();//空ループを送信
