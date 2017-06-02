@@ -67,7 +67,7 @@ void Tap::intensityRecognitionEvent(UbManager *ubm) {
                 peakTiming = 0;
             }
             Note tap;
-            tap.intensity = maxIntensity/23;
+            tap.intensity = maxIntensity/27;
             tap.timeStamp = peakTiming;
             taps.push_back(tap);
             printf("tapped! clock:%d\n", peakTiming);
