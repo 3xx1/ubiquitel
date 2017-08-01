@@ -14,8 +14,8 @@ Tap::Tap() {
     clock = 0;
     peakTiming = 0;
     maxIntensity = 0;
-    threshold_on  = 30;
-    threshold_off = 30;
+    threshold_on  = 20;
+    threshold_off = 20;
     tapsGetReady = false;
     isPlaying = false;
     serial.setDevice("/dev/cu.usbmodem1421");
@@ -30,13 +30,10 @@ void Tap::setRecordUb(int rUb) {
 }
 
 void Tap::intensityRecognitionEvent(UbManager *ubm) {
-    unsigned char tmp[4];
-    if(serial.available()>3)  {
-        tmp[0] = serial.readData();
-        tmp[1] = serial.readData();
-        tmp[2] = serial.readData();
-        tmp[3] = serial.readData();
-        signal = tmp[3];
+    unsigned char tmp;
+    if(serial.available()>1)  {
+        tmp = serial.readData();
+        signal = tmp;
     }
     //立ち上がり検出
     if(signal>threshold_on && !intensityRecognitionEventFlag) {
