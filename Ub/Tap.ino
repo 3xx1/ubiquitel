@@ -1,12 +1,3 @@
-void notifyUb() {
-  ubmip = udp.remoteIP();
-  delay(800);
-  sendData(UB_FOUND);
-  Serial.println(ubmip);
-  if(dockState == LOW)
-    sendData(UB_DOCKED);
-}
-
 void syncUb() {
   gtime = 0;
   playtime = 100;
@@ -31,8 +22,6 @@ void playUb() {
   if(!isPlaying) {
     now = looptime[r]-40;
     rcnt = repeat[r];
-    //次のバッファにデータがないとき
-    if(numTaps[(r+1)%2]==0) sendData(UB_PLAYED);
     
     isPlaying = true;
       Serial.println("ts");
@@ -96,10 +85,9 @@ void stepTime() {
           rcnt = repeat[(r+1)%2];//リピート回数設定
           now = now + looptime[(r+1)%2] - looptime[r];//再生位置移動
           resetTaps();
-          sendData(UB_PLAYED);Serial.print("played!");Serial.println(gtime);
+          Serial.print("played!");Serial.println(gtime);
         }else{
           stopUb();//次のバッファにデータがなければ停止
-          sendData(UB_STOPPED);
         }
       }else if(rcnt == 0) {
         if(numTaps[(r+1)%2] > 0) {
