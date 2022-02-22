@@ -1,3 +1,12 @@
+//使用ライブラリ
+//SocketIOClient, Arduino_JSON, WebSockets(by Markus Sattler)
+//SocketIoClient.cpp 47行目を以下に置き換えておく
+//_webSocket.beginSSL(host, port, url, (uint8_t*)fingerprint);
+//最初の書き込みはArduinoを経由してシリアル通信
+//基板上のJP2ピンの上→GND,中→D1(TX),下→D0(RX)につなぐ
+//電源につないで基板上の上ボタンを押しながら下ボタンを押して、下ボタンを離してから上ボタンを離す
+//IDEから書き込む
+
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
