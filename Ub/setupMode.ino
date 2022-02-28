@@ -11,7 +11,7 @@ void checkTestTap()
       stepMotor();
       stepCount++;
     }
-    else if (stepCount < 45) {
+    else if (stepCount < 90) {
       stopMotor();
       stepCount++;
     } else {
